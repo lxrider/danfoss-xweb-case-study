@@ -1,0 +1,9 @@
+# Fichiers prévus pour la prépublication.
+# Les fichiers déjà suivis, les ajouts forcés et l'historique exigent un contrôle distinct.
+*
+!/.gitignore
+!/README.md
+!/ETUDE.md
+!/CORRECTIONS.md
+!/LICENSE.md
+
