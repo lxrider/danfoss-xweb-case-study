@@ -1,166 +1,223 @@
 # Danfoss / XWEB : qui peut agir sur une installation frigorifique ?
 
-**Investigation indépendante sur les chemins d'administration, les droits d'écriture et la reprise des installations frigorifiques**
+**Investigation indépendante sur les accès, les droits de modification et la reprise des installations frigorifiques**
 
-**Prépublication v0.5 · 17 octobre 2026 · Candidate pour revue privée**  
-**Auteur (pseudonyme) :** lxrider. **Licence du texte original :** [CC BY 4.0](LICENSE.md).  
-**Contexte métier :** grandes et moyennes surfaces (GMS) alimentaires en France, leurs installations frigorifiques, la télésurveillance et les interventions de maintenance.  
-**Périmètre technique :** Danfoss AK-SM/AK-SC et Copeland/Dixell XWEB.  
-**Démarche :** OSINT/EASM passif, Attack Path Analysis et raisonnement tactique contradictoire. Aucun test actif sur des installations tierces.
+**v1.0 — Publication initiale, 18 octobre 2026**  
+**Auteur (pseudonyme) :** lxrider. **Textes originaux :** [CC BY 4.0](LICENSE.md).  
+[English version](STUDY.en.md) · [Accueil](README.md) · [Corrections](CORRECTIONS.md)
 
-Une supervision frigorifique relie des accès numériques à une fonction physique : conserver les denrées, surveiller les températures et permettre l'intervention du frigoriste. Selon les équipements et les droits disponibles, elle permet de modifier des consignes, des dégivrages et des paramètres d'alarme. La portée de cette administration, les protections qui lui résistent et les conditions de reprise sont au centre de cette étude. En GMS, ces questions concernent directement la conservation des marchandises, la disponibilité des équipements frigorifiques, les alertes et l’organisation des interventions.
+En octobre 2026, des perturbations frigorifiques sont signalées dans le commerce alimentaire. Pour un magasin, une perte de maîtrise du froid menace la conservation des produits, peut interrompre l'activité et mobilise les équipes de maintenance dans l'urgence. Comprendre ces incidents demande de répondre à trois questions : **comment les équipements étaient-ils accessibles, qui pouvait modifier leur fonctionnement et pourquoi certaines installations ont-elles été affectées tandis que d'autres étaient épargnées ?**
 
-En octobre 2026, le CERT-FR a signalé de nombreuses compromissions de contrôleurs de réfrigération Danfoss AK-SM/AK-SC et Copeland/Dixell XWEB. La gestion détaillée de son alerte indique une publication initiale le 12 octobre, l'ajout d'autres équipements ciblés le 13 et une mise à jour des recommandations le 16. Le bulletin décrit les familles concernées et les mesures de protection et de remise en service. Le vecteur initial reste indéterminé dans les informations publiques qu'il fournit.[1](#ref-1)
+Le CERT-FR signale de nombreuses compromissions de contrôleurs à distance Danfoss AK-SM/AK-SC et Copeland/Dixell XWEB. Son alerte a été publiée le 12 octobre, étendue à d'autres équipements le 13, puis révisée le 16 pour mettre à jour les recommandations. Elle établit le périmètre des familles signalées et les mesures préconisées ; elle ne détermine pas le vecteur initial.[1](#ref-1)
 
-> Lorsqu'un accès permet d'administrer le froid, quels droits donnent effectivement prise sur le fonctionnement de l'installation, quelles protections demeurent indépendantes et qui peut reprendre le contrôle ?
+Cette étude examine les installations frigorifiques des grandes et moyennes surfaces (GMS) alimentaires en France, leur télésurveillance et leur maintenance. Une supervision relie des accès numériques à des fonctions physiques : réguler, dégivrer, détecter une dérive et permettre une intervention. Nous avons rapproché les observations de surface Internet, les témoignages et la documentation produit pour reconstruire les autorités capables d'agir sur ces fonctions. Aucun test actif n'a été effectué sur une installation tierce.
 
 ## Résultats et question ouverte
 
-| Résultat de l'investigation | Appui disponible | Portée |
+| Constat | Éléments disponibles | Limite déterminante |
 |---|---|---|
-| Une pièce XWEB conduit à examiner la séparation entre consignes, limites applicatives et alarmes. | **OBSERVED** pour le contenu de la capture décrit dans le dossier ; **DOCUMENTED** pour la sémantique de certaines familles de régulateurs. | Modèles réels, permissions, acceptation des écritures et effets physiques **UNKNOWN**. |
-| Des professionnels du froid décrivent des responsabilités et des moyens d'action répartis entre plusieurs organisations. | Réponses enregistrées **OBSERVED** ; pratiques et perceptions **REPORTED**. | Échantillons volontaires, sans mesure de représentativité ni lien causal établi avec une compromission. |
-| Six chemins candidats permettent d'examiner les frontières entre accès, session, droits et commande. | Capacités de produits **DOCUMENTED**, pratiques **REPORTED**, participation aux incidents **HYPOTHESIS**. | Aucun chemin initial confirmé sur une installation victime. |
+| L'exposition peut résulter de décisions et de contraintes réparties entre organisations. | Deux enquêtes auprès de professionnels du froid et un témoignage distinct ; pratiques **REPORTED**. | Contrats, pouvoirs effectifs et lien causal avec les victimes **UNKNOWN**. |
+| Des familles de superviseurs différentes peuvent produire des perturbations comparables par des mécanismes différents. | Capacités propres aux générations **DOCUMENTED** ; perturbations **REPORTED**. | Aucun vecteur commun établi entre Danfoss et XWEB. |
+| La cohérence des modifications apparentes rend plausible une préparation fonctionnelle. | Motif XWEB **OBSERVED** sur capture ; comparaison statique de sept bibliothèques constructeur **OBSERVED**. | Modèle installé, outil, préparation et connaissances de l'auteur **UNKNOWN**. |
+| Une commande affichée couvre une étape distincte de son acceptation et de l'effet physique. | Fonctions d'import, d'écriture, de lecture et contraintes produit **DOCUMENTED**. | Chaîne complète commande → état actif → mesure physique **UNKNOWN**. |
 
-Le résultat architectural est conditionnel et vérifiable : **lorsqu'une même autorité peut déplacer une consigne et la limite qui l'encadre, cette limite reste sous son contrôle**. L'indépendance des autres protections, embarquées ou physiques, demande une vérification distincte.
+Le résultat architectural est conditionnel : **lorsqu'une même autorité peut déplacer une consigne et la limite qui l'encadre, cette limite reste sous son contrôle**. L'indépendance des protections embarquées, physiques et organisationnelles doit être vérifiée séparément.
 
-L'inconnue décisive est la provenance de la **première écriture anormale acceptée**. Pour un même site, le corpus disponible laisse ouverte la chaîne reliant accès initial, identité, commande, état actif du régulateur et effet physique. Les cinq hypothèses H1–H5 restent **INDETERMINATE** ; les trois scénarios COA-A/B/C restent ouverts.
+L'inconnue décisive reste la provenance de la **première écriture anormale acceptée**. Les hypothèses H1–H5 demeurent **INDETERMINATE** ; les scénarios COA-A/B/C restent ouverts, sans classement. Les étiquettes probatoires sont définies dans la section « Méthode, provenance et reproductibilité ».
 
-## 1. Trois constats sur la maîtrise d'une installation frigorifique
+## 1. Quatre constats issus de l'enquête
 
-### A. La consigne et sa limite appartiennent-elles au même domaine d'autorité ?
+### A. L'accès distant résulte aussi de décisions d'organisation
 
-Le dossier de recherche consigne l'examen d'une photographie de journal XWEB, visible dans une capture reçue d'une publication présentée comme publique sur un réseau professionnel. Plusieurs groupes de lignes « Écrire paramètres », de structure voisine, y concernent des régulateurs distincts. Le statut **OBSERVED** porte sur le contenu visible de cette capture. La page d'origine, les circonstances de collecte du journal et l'authenticité de la trace industrielle restent **UNKNOWN**.
+Le questionnaire technique a recueilli **43 participations**, dont **42 retenues pour l'exploitation technique** dans le dossier de recherche. Un questionnaire distinct sur les accès réseau et leur gouvernance a recueilli **25 participations** dans l'instantané du 17 octobre. Les unités comptées sont des réponses. Le recouvrement entre participants et la présence de plusieurs installations dans certaines réponses empêchent d'en déduire un nombre de personnes indépendantes ou de magasins.
 
-La présentation ci-dessous conserve les catégories utiles au raisonnement. Elle écarte la photographie, les valeurs, les codes de paramètres relevés, les horodatages précis, les identifiants et le lien vers la publication. Le tableau est une reconstruction analytique assainie.
-
-| Catégorie relevée dans la pièce | Lecture de l'artefact | Appui documentaire | Vérification manquante |
-|---|---|---|---|
-| Consignes | Lignes apparentes d'écriture visant un réglage de consigne | Fonction de consigne décrite pour la famille XM679K v5.4 | Référence de l'instrument, valeur acceptée et état actif |
-| Limites applicatives | Lignes visant aussi une borne de plage de consigne | Limite supérieure configurable dans le manuel de cette famille | Permissions effectives et application du changement |
-| Dégivrage | Lignes portant sur des réglages compatibles avec le dégivrage | Fonctions dont l'effet dépend du modèle, du mode et de la configuration | Déclenchement, durée effective et effet thermique |
-| Alarmes | Lignes compatibles avec des seuils ou temporisations | Paramètres d'alarme décrits dans la documentation produit | Fonction réellement affectée et fonctionnement des alertes |
-
-Le manuel XM679K v5.4 décrit une consigne et une borne supérieure réglable de sa plage. Cette sémantique est **DOCUMENTED** pour les produits couverts par ce manuel. Son application aux instruments photographiés reste conditionnée à leur identification.[7](#ref-7)
-
-La question d'architecture se précise ainsi : un rôle qui modifie la consigne peut-il également déplacer sa borne admissible ou modifier l'alerte associée ? Si ces opérations relèvent du même domaine de privilèges, leur contrôle demande des protections situées hors de sa portée. La présence et l'efficacité de telles protections sur l'installation photographiée sont **UNKNOWN**.
-
-La répétition de groupes homologues sur plusieurs régulateurs est compatible avec les fonctions natives de XWEB EVO. Le manuel distingue la préparation des paramètres, leur import dans l'interface et leur transfert par *Write* vers les instruments sélectionnés.[6](#ref-6) Plusieurs mécanismes restent donc possibles : préparation humaine suivie d'un transfert groupé, automatisation externe utilisant ces fonctions, ou opérations distinctes. Le format exact du journal produit par un *Write* natif n'a pas été reproduit dans cette enquête.
-
-L'observation appelle une revue des **droits par fonction** : lecture, préparation, édition, transfert, commande, modification des bornes et modification des alarmes. Cette revue doit aussi examiner les autres voies d'écriture et les protections propres au régulateur. Elle peut commencer par les manuels et la configuration autorisée, sans modifier les réglages d'un procédé en service.
-
-### B. Qui peut maintenir, fermer et rétablir l'accès distant ?
-
-L'enquête auprès des professionnels du froid a recueilli **43 participations** au questionnaire technique, dont **42 retenues pour l'exploitation technique** dans le dossier de recherche, et **25 participations** à un questionnaire distinct sur les accès réseau et leur gouvernance. Les unités comptées sont des réponses. Le recouvrement possible entre participants et l'agrégation de plusieurs installations dans certaines réponses empêchent d'en déduire un nombre de personnes indépendantes ou de magasins.
-
-Dans le questionnaire de gouvernance :
-
-| Déclaration | Réponses sur 25 |
+| Déclaration dans l'enquête de gouvernance | Réponses sur 25 |
 |---|---:|
 | Responsabilités de sécurisation jugées souvent floues | 17 |
 | Application des règles du client sans pouvoir imposer les siennes | 14 |
+| Aucune règle clairement définie connue | 8 |
 | Accès Internet direct cité parmi les pratiques habituelles | 18 |
 | Prise en main distante d'un poste froid | 11 |
 | VPN cité | 7 |
 
-Les catégories d'accès se recouvrent. Elles décrivent les pratiques générales déclarées par les répondants, avec une représentativité **UNKNOWN**. Leur présence sur une installation compromise reste à établir.
+Ces catégories se recouvrent. Elles décrivent des pratiques et perceptions **REPORTED** dans un échantillon volontaire, dont la représentativité reste **UNKNOWN**. La réconciliation interne des exports établit que les 24 réponses de l'instantané antérieur ont été conservées et qu'une réponse a été ajoutée : les anciens chiffres 24/16 et les chiffres 25/17 correspondent à deux états de collecte, sans correction rétroactive des déclarations.
 
-Ces déclarations **REPORTED** font apparaître une difficulté opérationnelle : l'exploitant, l'enseigne, le frigoriste, le prestataire réseau, l'intégrateur et l'astreinte peuvent détenir chacun une partie des moyens nécessaires pour protéger le service. L'un peut fournir la connexion, un autre administrer les comptes, un troisième intervenir sur les réglages et un quatrième recevoir les alarmes. Les contrats et les responsabilités effectives des sites restent **UNKNOWN**.
+Des réponses libres décrivent des moyens d'accès demandés par le client, fournis par son informatique ou laissés à la charge du mainteneur, y compris des connexions cellulaires. D'autres évoquent la difficulté d'obtenir un accès adapté au besoin de surveillance. **Une connexion 4G ne renseigne, à elle seule, ni son adressage, ni son filtrage, ni l'existence d'un VPN.** Ces témoignages montrent une répartition possible des décisions ; ils n'établissent pas l'architecture d'une victime ni la cause de sa compromission.
 
-**Limite du volet gouvernance.** Notre collecte directe porte sur la perspective des frigoristes. Nous ne disposons pas d’entretiens directs documentés avec des directions d’enseignes, des DSI de GMS ou des responsables de magasins. Le référentiel de recherche conserve des déclarations publiques d’acteurs de la distribution, mais celles-ci ne permettent pas de vérifier les droits de décision, les contrats ou les architectures des installations concernées. Cette asymétrie des sources limite les conclusions possibles sur la gouvernance des accès.
+Un témoignage direct, distinct des questionnaires, décrit un accès fourni par l'exploitant et parfois partagé avec d'autres usages (**REPORTED**). La segmentation et les communications latérales restent **UNKNOWN**. Le partage d'un boîtier d'accès peut recouvrir des segments isolés ou un réseau commun ; le dossier ne départage pas ces configurations.
 
-Un témoignage direct, traité séparément des questionnaires, décrit aussi un accès de maintenance fourni par l'exploitant et parfois partagé avec d'autres usages (**REPORTED**). La segmentation, le filtrage et les communications possibles entre équipements sont **UNKNOWN**. Cette information conduit à vérifier la frontière entre usages et intervenants ; elle laisse ouverte l'existence d'un chemin latéral.
+L'exploitant, l'enseigne, la DSI, le frigoriste, le prestataire réseau, l'intégrateur et l'astreinte peuvent ainsi détenir chacun une partie des moyens d'action. Le lien peut être fourni par un acteur, les comptes administrés par un autre, les réglages modifiés par un troisième et les alarmes reçues ailleurs. Nous ne disposons pas d'entretiens directs documentés avec des directions d'enseignes, des DSI de GMS ou des responsables de magasins. Les contrats, les pouvoirs de décision et les responsabilités effectives restent à établir.
 
-Le CERT-FR recommande de supprimer l'exposition directe et de rétablir un accès protégé. Il demande également de vérifier les conditions d'assurance avant d'interrompre la remontée des données vers le frigoriste.[1](#ref-1) Le confinement doit donc intégrer la continuité des alarmes et de l'intervention, avec un responsable capable d'organiser le service dégradé.
+Cette lecture de la *supply chain* porte sur la **délégation des accès, de la maintenance et des décisions de reprise**. Une intrusion chez un prestataire ou une altération logicielle demeurent des hypothèses distinctes. Le CERT-FR demande aussi de vérifier les conditions d'assurance avant d'interrompre la remontée des données vers le frigoriste.[1](#ref-1) Le confinement doit intégrer la continuité des alarmes, l'astreinte et le service dégradé.
 
-Pour chaque canal d'administration, il faut pouvoir identifier qui **autorise, administre, intervient, journalise, révoque, préserve l'alarme et valide la remise en service**. Cette répartition se rattache aux contrats et procédures de l'installation.
+### B. Des conséquences comparables ne désignent pas un vecteur commun
 
-### C. Quel état de référence permet une reprise fiable ?
+Les récits Danfoss et la pièce XWEB décrivent des contextes distincts. Ils ne forment pas une chronologie forensique unique. Des consignes, dégivrages ou alarmes peuvent être modifiés dans plusieurs écosystèmes sans que le même accès, la même vulnérabilité ou le même acteur soit en cause.
 
-Des témoignages techniques décrivent des paramètres anormaux, une remise en service difficile ou la réapparition d'anomalies après correction (**REPORTED**). Le récit Danfoss détaillé et la pièce XWEB concernent des situations distinctes, dont les chronologies et les effets doivent être examinés séparément.
+| Famille ou génération | Distinction technique utile | Ce qui reste à établir pour les incidents |
+|---|---|---|
+| **Danfoss AK-SM 800/850 historiques** | Les permissions dépendent du profil et de la fonction. Le niveau Supervisor requis pour un tunnel de maintenance particulier ne s'étend pas automatiquement à toute commande Web. | Modèle, configuration, rôle et canal réellement utilisés. |
+| **Danfoss AK-SM 800A** | Le *Session Control* et l'activation de ST-500 sont deux réglages séparés. Le bulletin R4.3.1 annonce ST-500 désactivé par défaut, avec réactivation possible pour la maintenance. | État historique de ces contrôles ; absence de transposition aux générations antérieures. |
+| **XWEB historique / Classic** | Bibliothèques d'instruments `.xw5`, distinctes de la version de l'application et du firmware du régulateur. | Bibliothèque effectivement chargée et famille du système photographié. |
+| **XWEB EVO** | Préparation, import dans la table applicative, sélection des paramètres et *Write* vers un ou plusieurs instruments sont des étapes distinctes. | Permissions effectives, validation et résultat de chaque opération. |
+| **XWEB PRO** | Le manuel distingue les permissions et documente une passerelle Modbus TCP/IP désactivable, en lecture seule ou en lecture-écriture, avec liste de contrôle réseau optionnelle. | Activation et contrôle de ce canal alternatif ; fonctions PRO non présumées dans EVO. |
 
-Une anomalie réapparue peut résulter d'une nouvelle modification distante, d'un transfert de configuration, d'une programmation locale ou différée, d'une commande de forçage (*override*) ou d'une correction incomplète. Le mécanisme en cause dans chaque récit reste **UNKNOWN**.
+Ces capacités sont **DOCUMENTED** pour les produits et révisions cités.[6](#ref-6)[8a](#ref-8a)[8b](#ref-8b)[8c](#ref-8c)[17](#ref-17) Leur présence et leur utilisation sur les installations affectées restent **UNKNOWN**. Les vulnérabilités publiées par Claroty concernent des générations identifiées ; leur exploitation pendant les incidents d'octobre n'est pas établie.[5](#ref-5)
 
-La documentation Danfoss AK-SM 800 décrit deux sens de transfert : *Upload* récupère les réglages des régulateurs vers la base du superviseur ; *Download* envoie les réglages mémorisés dans cette base vers les régulateurs.[8c](#ref-8c) XWEB documente également des fonctions de programmation et de transfert, selon les générations.[6](#ref-6) Ces capacités rendent plausible la réapplication d'un état enregistré ; leur rôle dans les réapparitions rapportées demeure une **HYPOTHESIS**.
+La comparaison affecté/épargné apporte surtout une limite à l'interprétation. **22 répondants** au questionnaire technique déclarent avoir rencontré à la fois des installations touchées et épargnées. Parmi ces 22 réponses, les différences cochées sont les suivantes, avec choix multiples :
 
-La reprise pose alors une question concrète : **où se trouve la configuration de référence approuvée, et quelles opérations peuvent la remplacer ?** L'état du superviseur, celui du régulateur et celui d'une sauvegarde peuvent différer. Une sauvegarde récente peut déjà contenir des réglages anormaux.
+| Différence déclarée | Répondants sur 22 |
+|---|---:|
+| Modèle ou version du superviseur | 14 |
+| Mode d'accès distant | 10 |
+| Configuration réseau ou filtrage | 8 |
+| Configuration des comptes de maintenance | 5 |
+| Aucune différence identifiée | 4 |
 
-Une validation de reprise doit identifier cette référence, vérifier le sens des transferts, examiner les programmations et forçages résiduels, contrôler les alarmes et confronter les valeurs affichées aux mesures physiques pertinentes. Le professionnel qualifié et l'exploitant doivent pouvoir valider ensemble le retour à un fonctionnement acceptable. Les essais techniques éventuels exigent un périmètre autorisé et un programme adapté aux contraintes du procédé.
+Seuls **deux** de ces répondants renseignent un firmware ; un seul de ces deux coche aussi « modèle ou version ». Le dossier ne contient donc ni quatorze comparaisons de firmware vérifiées, ni vingt-deux paires de magasins contrôlées. Un accès public déclaré sans modification constatée contredit une lecture automatique « exposition donc compromission », sans démontrer une protection efficace ni une tentative hostile. Des différences perçues restent **REPORTED**, sans valeur causale mesurée.
+
+### C. Les modifications apparentes rendent plausible une préparation fonctionnelle
+
+La pièce XWEB est une photographie de journal visible dans une capture reçue d'une publication présentée comme publique sur un réseau professionnel. La page d'origine, les circonstances de collecte et l'authenticité de la trace industrielle restent **UNKNOWN**. **OBSERVED** qualifie uniquement le contenu visible consulté.
+
+La relecture consignée relève **39 lignes apparentes d'écriture**, réparties en **trois séries de treize** concernant trois régulateurs, avec les mêmes couples code/cible. Un groupe partiel concerne un autre régulateur. La publication conserve le motif analytique ; elle exclut la photographie, sa transcription, les valeurs initiales et cibles, les horodatages détaillés, les identifiants et le lien vers la publication d'origine.
+
+Le rapprochement documentaire porte sur les catégories suivantes :
+
+| Catégorie | Lecture de la pièce | Appui constructeur | Limite |
+|---|---|---|---|
+| Consignes | Demandes apparentes visant des réglages de consigne | Consigne et modes de fonctionnement décrits par famille | État accepté et mode actif inconnus |
+| Limites applicatives | Une borne de plage est aussi visée | Bornes configurables de la consigne | Droit effectif de modifier consigne et borne à établir |
+| Dégivrage | Plusieurs réglages compatibles avec cette fonction | Déclenchement, durée et sondes dépendent du modèle | Aucun cycle effectif ni effet thermique déduit |
+| Alarmes | Seuils ou délais apparemment visés | Dictionnaires et fonctions variables suivant les générations | Réduction effective de la détection non établie |
+
+**Comparaison statique des bibliothèques XM679K.** L'examen hors ligne de sept fichiers officiels du catalogue XWEB historique, reproduit lors du contrôle du 18 octobre, recherche les codes comme entrées exactes du dictionnaire de paramètres (`P`). Les sept empreintes SHA-256 concordent avec celles conservées lors de l'analyse. Aucun installateur constructeur n'a été exécuté.[17](#ref-17)
+
+| Version de bibliothèque historique | Identifiant constructeur du fichier XM679K | Codes examinés présents | `ddA` / `FAd` | `rA2` / `A2d` |
+|---|---|---:|---|---|
+| v0.9 | `003200090000` | 13/13 | Présents | Absents |
+| v1.3 | `0032000D0001` | 13/13 | Présents | Absents |
+| v3.4 | `003200220012` | 13/13 | Présents | Absents |
+| v3.9 | `003200270018` | 13/13 | Présents | Absents |
+| v4.2 | `0032002A001D` | 13/13 | Présents | Absents |
+| v4.3 | `0032002B001E` | 13/13 | Présents | Absents |
+| v5.4 | `003200360029` | 11/13 | Absents | Présents |
+
+Le résultat **OBSERVED** invalide l'objection selon laquelle les treize codes ne pourraient appartenir à une même bibliothèque XM679K : six dictionnaires anciens les contiennent. À l'inverse, le dictionnaire historique v5.4 examiné ne contient pas `ddA` et `FAd`. Cela limite l'hypothèse d'une utilisation de ce dictionnaire précis, sans traduction ni modification ; cela n'identifie ni le firmware des régulateurs photographiés ni leurs bibliothèques réelles.
+
+Les tableaux du manuel XM670K/XM679K de 2015 associent `ddA` au délai d'alarme de la sonde de dégivrage et `FAd` à celui de la sonde ventilateur. Certains libellés de la prose sont moins cohérents que les tableaux. Le manuel XM669K/XM679K v5.4d de 2022 présente un autre ensemble, comprenant `rA2` et `A2d`, sans les deux codes précédents dans le document consulté.[7a](#ref-7a)[7b](#ref-7b) Cette évolution documentaire interdit d'appliquer indistinctement la sémantique d'une génération à une autre.
+
+La frontière de format compte également : les fichiers `.xw5` historiques, les paquets de bibliothèques EVO, la version XWEB et le firmware du régulateur sont quatre objets différents. Le manuel EVO exclut le chargement direct des fichiers Classic. Les paquets EVO n'ont pas été décodés en un dictionnaire sémantique fiable dans cette enquête ; les résultats `.xw5` ne leur sont pas transposés.[6](#ref-6)[17](#ref-17)
+
+**Interprétation de posture adverse.** Si le journal correspond à des actions hostiles réelles et si la sémantique est celle d'une famille compatible, le choix conjoint de consignes, de bornes et de réglages d'alarme rend plausible une préparation visant le fonctionnement frigorifique (**HYPOTHESIS**). Une connaissance préalable du métier constitue une explication possible. Les outils natifs, une configuration préparée par un autre acteur, un apprentissage progressif ou des actions distinctes constituent des explications concurrentes. Le dossier ne permet pas de déterminer les connaissances de l'auteur ni son intention.
+
+Un *Write* natif peut envoyer des paramètres préparés vers plusieurs appareils compatibles. La répétition locale est donc compatible avec une préparation humaine suivie d'un transfert groupé, des opérations successives ou une automatisation externe. Les deux imports ZIP visibles sont signalés en erreur et interviennent après la première série ; ils ne peuvent être présentés comme l'import réussi qui l'aurait déclenchée. Une activité de composant de planification local ne prouve pas une tâche hostile.[6](#ref-6)
+
+Il faut distinguer **préparation des cibles, préparation des valeurs, émission locale et coordination entre établissements**. Aucun de ces niveaux ne démontre automatiquement les suivants.
+
+### D. La commande affichée, l'état actif et l'effet physique sont distincts
+
+Dans le manuel EVO, **Import** charge des valeurs dans le tableau de travail ; **Write** les transfère aux instruments sélectionnés ; **Read** interroge les instruments. Les valeurs invalides sont signalées ; une valeur rouge bloque l'écriture native telle que documentée. Le journal des actions significatives ne spécifie toutefois pas, dans les passages consultés, ce que garantit chaque ligne pour un paramètre et un instrument.[6](#ref-6)
+
+| Étape | Vérification nécessaire | État pour la pièce XWEB |
+|---|---|---|
+| Permission | Rôle, appareil, fonction et canal réellement autorisés | **UNKNOWN** |
+| Préparation | Bibliothèque, valeurs et validation applicative | Fonctions **DOCUMENTED**, état incident **UNKNOWN** |
+| Émission | Demande réellement transmise et résultat par instrument | Lignes apparentes **OBSERVED**, transmission **UNKNOWN** |
+| Acceptation | Acquittement pertinent et résultat de validation du régulateur | **UNKNOWN** |
+| État actif | Relecture, mémorisation et mode de régulation effectif | **UNKNOWN** |
+| Effet physique | Mesures indépendantes, état des sorties, sondes et actionneurs | **UNKNOWN** |
+| Alerte et protection | Détection, transmission de l'alarme et action de barrières indépendantes | **UNKNOWN** |
+
+Les autorisations *Read Parameters*, *Edit Parameters Value*, *Parameters Visibility Level*, *Import Parameters* et *Send Commands* couvrent des fonctions différentes. Les catégories de visibilité `Pr1`, `Pr2` et `N.V.` d'une bibliothèque ne suffisent pas à établir une permission Web ou protocolaire. Un nom de rôle affiché dans un journal n'identifie pas une personne. La passerelle Modbus TCP documentée pour PRO demande son propre examen de configuration et de contrôle, distinct des rôles de l'interface Web.[6](#ref-6)
+
+Les règles constructeur fournissent des contre-épreuves utiles :
+
+| Mécanisme | Contrainte documentée ou observée dans une bibliothèque | Conséquence pour l'interprétation |
+|---|---|---|
+| `US` / `SEt` | La consigne est bornée par `LS` et `US` ; certaines règles de `US` se réfèrent aussi à la consigne. | Une borne configurable exige une revue d'autorité ; l'ordre affiché des lignes ne prouve ni l'ordre des trames ni celui des validations. |
+| `ALC` / `ALU` | Dans les familles examinées, la plage Celsius relative est 0–50 ; la plage absolue dépend notamment de `ALL` et peut aller jusqu'à 150 °C. | Une valeur admissible dans un mode peut être invalide dans l'autre ; mode, unité, bibliothèque et firmware réels restent inconnus. |
+| `CCS` / `rSE` | Une consigne de cycle continu suppose ce mode actif ; la consigne effective peut intégrer d'autres fonctions. | Une consigne affichée n'est ni la consigne active universelle ni une température mesurée. |
+| Dégivrage et sondes | Déclenchement par horloge ou intervalle, sondes présentes/configurées et défauts influencent le cycle ; `MdF` peut borner une durée ou servir de durée suivant la configuration. | Aucun cycle ni délai physique précis ne découle des seuls paramètres affichés. |
+| Délais et seuils d'alarme | Sémantique, capteur et activation dépendent de la génération. | Une modification d'alarme ne démontre ni sa suppression ni la neutralisation de toutes les protections. |
+
+Ces contraintes sont **DOCUMENTED** par famille ou **OBSERVED** dans les dictionnaires historiques, sans preuve d'application aux appareils photographiés.[7](#ref-7)[7a](#ref-7a)[7b](#ref-7b)[17](#ref-17) Restent possibles une demande groupée acceptée, une acceptation partielle, un rejet, une trace de l'interface seulement, une autre bibliothèque ou un autre canal. La compatibilité d'une valeur avec une plage logicielle ne vaut pas acquittement du régulateur.
+
+Le constructeur précise aussi que l'instrument XM669K/XM679K couvert par le manuel v5.4d ne doit pas être utilisé comme dispositif de sécurité.[7b](#ref-7b) Pour qualifier une protection d'indépendante, trois vérifications sont nécessaires : **l'autorité** qui pourrait la modifier ou la désactiver ; **la capacité physique et fonctionnelle** à agir malgré la perturbation ; **l'objectif protégé**, qu'il s'agisse du matériel, de la continuité du froid, des denrées ou de la détection. Une sécurité de pression peut préserver un compresseur sans préserver les produits. L'état des protections sur les installations affectées reste **UNKNOWN**.
 
 ## 2. Reconstituer les chemins depuis la posture de l'adversaire
 
-### Comprendre l'environnement et chercher les conditions nécessaires
+### De la surface observable aux droits utilisables
 
-L'analyse part d'un adversaire hypothétique dont la position initiale est **UNKNOWN**. Elle reconstruit l'environnement métier, les informations accessibles, les frontières à franchir, les droits éventuellement obtenus et les effets possibles.
+L'analyse part d'un adversaire hypothétique dont l'accès, les connaissances initiales et l'intention sont **UNKNOWN**. Elle cherche les informations qu'il pourrait obtenir, les frontières qu'il devrait franchir, les fonctions accessibles et les conditions nécessaires à une conséquence inacceptable. Les démarches effectivement conduites sont ASM/EASM, Attack Path Analysis, Adversary Posture et analyse fonctionnelle des conséquences.
 
-Trois traditions de raisonnement structurent ce travail :
+ONYPHE, Censys et SecurityScorecard/Driftnet ont publié des mesures reposant sur des signatures, périodes et unités différentes.[2](#ref-2)[3](#ref-3)[4](#ref-4) Notre enquête les distingue de ses consultations d'archives passives et de ses contrôles hors ligne.
 
-- l'IPOE décrit l'environnement, ses effets sur les opérations et les modes d'action possibles, notamment dans FM 2-0 ;
-- AJP-5 aide à distinguer objectifs supposés, moyens, modes d'action, contraintes et points de décision ;
-- l'ACH confronte les hypothèses aux observations discriminantes et à leurs contradictions.[14](#ref-14)[15](#ref-15)[16](#ref-16)
+Censys rapporte **1 825 hôtes StoreView français le 11 octobre, puis 537 le 14**. Cette réduction de visibilité indexée ne mesure pas le nombre de magasins assainis. La collecte Driftnet du 13 octobre rapporte **5 282 observations StoreView IP/port, sur 4 642 IP**, et **6 340 observations XWEB IP/port** dans ses populations. Ces résultats sont **REPORTED**, selon les méthodes des auteurs ; ils ne sont ni fusionnés avec nos mesures ni convertis en victimes.[3](#ref-3)[4](#ref-4)
 
-Ces outils sont employés par analogie analytique. L'identité, l'intention et les méthodes de planification des auteurs des incidents demeurent **UNKNOWN**. L'approche INL CCE fournit un autre appui explicite : partir des conséquences critiques et raisonner depuis les possibilités de l'adversaire.[12](#ref-12)
+| Relevé Netlas conservé dans le corpus | StoreView | XWEB | Unité et limite |
+|---|---:|---:|---|
+| Index libellé 10 septembre 2026 | 2 080 | 2 215 | Documents de réponses, dans le périmètre des requêtes archivées |
+| Index libellé 29 septembre, réponses filtrées avant le 11 octobre | 1 716 | 1 825 | Documents ; fenêtres recouvrantes, sans série homogène ni décompte de victimes |
 
-Le travail tactique consiste ici à trouver les **conditions nécessaires à une conséquence inacceptable**, puis les endroits où la défense peut retirer une capacité d'action. Pour une perte de maîtrise thermique accompagnée d'une alerte dégradée, il faut notamment examiner les droits de régulation, les droits sur les alarmes, l'acceptation des écritures, les protections indépendantes et le délai d'intervention. Chacune de ces conditions peut modifier ou invalider le scénario.
+Ces chiffres **OBSERVED** au niveau de l'index ne s'additionnent pas. Une date d'index, l'horodatage d'une réponse, la date d'export et le début d'un incident sont des repères distincts. Le réaudit de cinq exports StoreView déjà archivés porte sur **100 enregistrements**, dont l'union contient **87 services distincts** au sens IP/port/protocole. Les doublons entre exports interdisent d'en faire cent équipements indépendants ou une estimation nationale.
 
-### De l'exposition observable aux droits utilisables
+Un lot XWEB séparé comporte **20 réponses**, sur **19 IP** et **20 services** : **14** titres `XWEB EVO`, **6** titres `XWEB`, **19** URI HTTP et **1** HTTPS. Ses réponses sont horodatées du **3 au 10 octobre**, bien que l'index soit libellé **29 septembre**. Le titre générique `XWEB` apparaît aussi avec un certificat portant un nom XWEB PRO. Ce contre-exemple invalide une classification automatique « titre générique donc génération ancienne » ; il ne certifie pas le modèle de l'appareil.
 
-ONYPHE, Censys et SecurityScorecard/Driftnet ont publié des études d'exposition reposant sur des signatures, périodes et unités différentes.[2](#ref-2)[3](#ref-3)[4](#ref-4) Claroty a documenté des vulnérabilités et des démonstrations sur des générations déterminées de Danfoss et de XWEB PRO.[5](#ref-5) Ces travaux constituent des sources antérieures ou contemporaines de l'enquête, créditées selon leur périmètre.
+Les contrôles hors ligne de signatures et de relations vérifient la cohérence des artefacts examinés. Ils ne mesurent pas la précision des empreintes sur un parc physiquement identifié. Une interface, un favicon, un certificat, une ressource JavaScript ou une cooccurrence d'IP ne prouvent ni firmware, ni propriété, ni relation d'autorité. Les décomptes des moteurs, des services, des régulateurs et des magasins restent séparés.
 
-Notre dossier comporte également des consultations d'archives d'exposition et des contrôles hors ligne de signatures et de corrélations. Leur niveau d'observation est celui du document indexé ou de l'artefact local. La précision des empreintes sur une population d'équipements physiquement identifiés reste **UNKNOWN**. Une adresse IP, un service réseau, un document d'index et un établissement sont des unités distinctes.
+L'EASM établit ainsi une découvrabilité historique générique. Le passage à un chemin d'incident exige l'exposition historique d'une victime, une frontière effectivement franchie, puis une identité, des permissions et une commande reliées à cette installation.
 
-L'EASM renseigne ainsi la découvrabilité extérieure. Pour reconstruire un chemin d'attaque, il faut ensuite établir la frontière d'authentification franchie, l'identité ou le mécanisme utilisé, les permissions effectives et leur portée sur les équipements et leurs fonctions.
+### Six chemins candidats et propagation locale
 
-Le schéma représente les **frontières candidates à vérifier**. Chaque flèche appelle une preuve propre à l'installation.
+Le diagramme représente des **frontières candidates à vérifier**. Chaque flèche demande une preuve propre au produit et à l'installation ; le canal protocolaire n'hérite pas automatiquement des contrôles Web.
 
 ```mermaid
 flowchart TB
-    A["Accès direct ou télémaintenance"] --> S["Session et permissions effectives"]
+    A["Accès direct ou télémaintenance"] --> S["Session, rôle et appareils autorisés"]
     P["Plateforme distante"] --> R["Relais et droits locaux"]
     R --> S
-    S --> W["Écriture applicative ou protocolaire"]
-    W --> C["Régulateur : acceptation et état actif"]
-    C --> E["Fonctionnement physique et conséquences métier"]
-    I["Protections indépendantes à vérifier"] -.-> C
-    I -.-> E
+    S --> W["Demande d'écriture"]
+    A -->|"Canal protocolaire à vérifier"| W
+    W --> C["Acceptation et état du régulateur"]
+    C --> E["Fonctionnement physique"]
+    C --> L["Partage LAN local, si activé"]
+    L --> E
+    E --> B["Conséquences métier"]
+    I["Protections indépendantes à vérifier"] -.-> E
+    I -.-> B
 ```
-
-### Six chemins candidats
 
 | Chemin | Frontières à examiner | Condition décisive sur une installation affectée |
 |---|---|---|
 | **AP-01 · Web Danfoss** | Interface StoreView, session, permissions de supervision, régulateurs | Accessibilité historique et provenance de la première écriture |
-| **AP-02 · Web XWEB** | Génération, authentification, profil, édition et transfert des paramètres | Droits effectifs et écriture acceptée ; autres plans d'accès à examiner selon le produit |
+| **AP-02 · Web XWEB** | Génération, authentification, profil, édition et transfert ; canal alternatif selon produit | Droits effectifs et écriture acceptée ; contrôle distinct des autres plans d'accès |
 | **AP-03 · Danfoss Service Tool** | Canal de maintenance, service activé, authentification, tunnel vers AK-PC | Configuration et session réellement utilisées |
 | **AP-04 · Danfoss Alsense** | Identité, périmètre de gestion, fonctions de modification et System Managers | Droit d'écriture commun à plusieurs sites affectés et événement corrélé |
 | **AP-05 · Copeland Connect+ / XWEB** | Autorisations de plateforme, relais de session, droits natifs XWEB | Présence du relais et permissions établies aux deux niveaux |
 | **AP-06 · Poste de maintenance** | Téléassistance ou accès au poste local, session de supervision, commande | Provenance d'une première écriture rattachée à ce canal |
 
-Les fonctions constructeur sont **DOCUMENTED** pour les produits décrits ; le poste froid relève aussi de pratiques **REPORTED**. L'implication de chacun de ces chemins dans les incidents reste **HYPOTHESIS**, avec une voie initiale **UNKNOWN**.
+Les capacités constructeur sont **DOCUMENTED** pour les produits décrits ; les usages de poste froid sont aussi **REPORTED**. Le tunnel AK-SM vers AK-PC décrit par Danfoss requiert le niveau Supervisor dans le cas documenté. Alsense présente des fonctions de réplication de réglages sur une flotte ; Connect+ documente un relais *Terminal Mode* pour XWEB. Les autorisations de plateforme, de relais et d'application locale demeurent distinctes.[8a](#ref-8a)[8d](#ref-8d)[9](#ref-9) L'implication de chaque chemin dans les incidents reste **HYPOTHESIS**.
 
-Plusieurs distinctions techniques gouvernent cette lecture :
+La portée locale demande une couche supplémentaire. La documentation XM669K/XM679K v5.4d décrit un réseau de **jusqu'à huit sections**, avec synchronisation optionnelle des consignes (`LSP`), du début de dégivrage (`LMd`) et de sa fin (`dEM`). Elle décrit aussi l'administration locale/MultiMaster et la consigne effective `rSE`.[7b](#ref-7b) Ces fonctions peuvent élargir les conséquences au sein d'une installation lorsqu'elles sont activées ; elles ne prouvent ni des écritures distinctes sur chaque section ni leur journalisation dans XWEB. Leur activation pendant les incidents est **UNKNOWN**.
 
-- **Danfoss :** les AK-SM 800/850 historiques et les AK-SM 800A possèdent des contrôles différents. Sur 800A, le *Session Control* et l'activation de ST-500 constituent deux réglages séparés. Le bulletin R4.3.1 annonce ST-500 désactivé par défaut, avec réactivation possible pour la maintenance. Le tunnel AK-SM vers AK-PC décrit par Danfoss requiert le niveau Supervisor dans le cas documenté.[8a](#ref-8a)[8b](#ref-8b)
-- **XWEB :** EVO et PRO doivent être examinés séparément. Le manuel PRO distingue notamment lecture, édition de valeurs, import et envoi de commandes. Il documente aussi une passerelle Modbus TCP/IP configurable en lecture seule ou en lecture-écriture. Les droits Web et les contrôles de ce plan protocolaire demandent une analyse distincte ; son activation dans les incidents est **UNKNOWN**.[6](#ref-6)
-- **Plateformes :** Alsense documente des fonctions de réplication de réglages à l'échelle d'une flotte. Connect+ documente un relais *Terminal Mode* pour XWEB. Les autorisations de plateforme, de relais et d'application locale doivent être établies à chaque niveau.[8d](#ref-8d)[9](#ref-9)
+Cette propagation complète AP-01 à AP-06 sans créer un septième accès initial. Il faut distinguer **plusieurs régulateurs d'une installation, plusieurs superviseurs et plusieurs établissements**. Pour soutenir une autorité multisite effectivement utilisée, trois faits doivent être établis séparément : connectivité à plusieurs sites, droits d'écriture utilisables sur ces sites et événement commun corrélé à au moins deux sites affectés. Le même prestataire, un outil commun ou des réglages similaires ne suffisent pas.
 
-La portée se décrit à trois échelles : **plusieurs régulateurs d'une installation, plusieurs superviseurs, plusieurs établissements**. Le motif local visible dans la pièce XWEB laisse la portée interétablissements **UNKNOWN**. L'existence d'un prestataire commun ou d'une cooccurrence d'IP laisse également ouverte la relation d'autorité effective.
+### H1–H5 et COA-A/B/C : accès et séquencement
 
-### H1–H5 et COA-A/B/C : deux questions distinctes
-
-Les hypothèses d'accès et de relations d'autorité sont conservées sans classement :
+L'analyse des hypothèses est **structurée et inspirée des principes ACH** : chercher les incompatibilités, les explications concurrentes et les observations discriminantes. Elle ne revendique pas l'exécution intégrale d'une procédure formelle.[16](#ref-16)
 
 | Hypothèse | Proposition à examiner | Élément réellement discriminant |
 |---|---|---|
 | **H1** | Reconnaissance et compromissions distribuées | Sessions et premières écritures attribuables site par site |
 | **H2** | Faiblesse d'authentification ou de configuration récurrente | Même mécanisme applicable et utilisé dans une famille et une configuration vérifiées |
-| **H3** | Accès ou renseignements issus de la maintenance | Session de maintenance reliée à l'écriture, ou preuve distincte de sélection par information non publique |
+| **H3** | Accès ou renseignements issus de la maintenance | Session reliée à l'écriture, ou preuve distincte d'une sélection par information non publique |
 | **H4** | Identité ou plateforme multisite compromise | Droit effectif et événement commun corrélés sur au moins deux sites affectés |
 | **H5** | Altération de la distribution logicielle | Artefact altéré, déploiement antérieur aux effets et comportement associé |
 
-**H1–H5 : INDETERMINATE.** Certaines hypothèses peuvent se combiner. H3 distingue l'utilisation d'un accès de maintenance et celle d'informations de ciblage. La présence d'une CVE documentée laisse son exploitation pendant ces incidents **UNKNOWN**.
+**H1–H5 : INDETERMINATE.** Certaines hypothèses peuvent se combiner. H3 distingue l'utilisation d'un accès et celle de renseignements de maintenance. Aucun artefact logiciel altéré ni usage d'une CVE n'est établi dans le corpus d'incident.
 
-Les scénarios de séquencement examinent une autre question :
+Les scénarios de séquencement posent une autre question :
 
 | Scénario | Lecture candidate | Preuve manquante |
 |---|---|---|
@@ -168,100 +225,118 @@ Les scénarios de séquencement examinent une autre question :
 | **COA-B** | Adaptation successive après un premier épisode | Chronologie alignée et indices d'apprentissage entre épisodes |
 | **COA-C** | Opérations indépendantes ou imitation | Origines et séquences distinctes corroborées |
 
-La première écriture acceptée, corrélée à une identité, un chemin réseau et un état physique, serait particulièrement discriminante. Une absence de trace devient exploitable seulement après contrôle de la couverture du journal, de ses horloges, de sa rétention et de son intégrité.
+Ces trois scénarios restent ouverts. La première écriture acceptée, corrélée à une identité, un chemin et un état physique, serait particulièrement discriminante. Une absence de trace devient exploitable seulement après vérification de la couverture du journal, des horloges, de la rétention et de l'intégrité.
 
-### Employer MITRE ATT&CK for ICS au niveau permis par les pièces
+### Qualifier les comportements au niveau permis par les pièces
 
-| Référence | Qualification dans ce dossier |
+| Référence MITRE ATT&CK for ICS | Qualification dans ce dossier |
 |---|---|
 | **T0836 · Modify Parameter** | Compatible avec les événements affichés et les modifications rapportées ; action hostile et acceptation à établir |
-| **T0838 · Modify Alarm Settings** | Compatible sous réserve de la sémantique des paramètres et des versions présentes |
+| **T0838 · Modify Alarm Settings** | Compatible sous réserve de la sémantique et des versions présentes |
 | **T0878 · Alarm Suppression** | **UNKNOWN** : suppression effective d'alarmes non établie |
 
-MITRE fournit ici un vocabulaire de qualification. Pour la défense, *M0800 Authorization Enforcement* et les stratégies *DET0776* et *DET0777* orientent l'examen des autorisations et de la détection des changements de paramètres et d'alarmes.[13](#ref-13) Leur mise en œuvre dépend des traces disponibles et du fonctionnement du produit.
+MITRE apporte ici un vocabulaire de qualification. Pour la défense, *M0800 Authorization Enforcement*, *DET0776* et *DET0777* orientent l'examen des autorisations et de la détection des changements.[13](#ref-13) Leur pertinence opérationnelle dépend des traces disponibles et du fonctionnement du produit.
 
-## 3. Cartographier l'autorité numérique sur l'installation
+## 3. Cartographier l'autorité et préparer une reprise fiable
 
-La synthèse prend la forme d'une **carte d'autorité numérique sur l'installation**. Elle rassemble les fonctions critiques, les droits, leurs délégations, les protections et la récupération. Elle applique au cas étudié les principes de risque industriel, de contrôle d'accès et de continuité présents dans les guides ANSSI, IEC 62443 et INL CCE.[10](#ref-10)[11](#ref-11)[12](#ref-12)
+### Qui peut agir, sur quoi et sous quel contrôle ?
+
+La **carte d'autorité numérique sur l'installation** rassemble les fonctions critiques, les droits, leurs délégations, les protections et la récupération. Elle synthétise les résultats du cas et les confronte aux domaines déjà couverts par les guides ANSSI et IEC 62443.[10](#ref-10)[11](#ref-11)
 
 | Question | Vérification attendue | État du corpus |
 |---|---|---|
-| **Fonction critique** | Conséquences métier, plages et tolérances approuvées | Fonction générale documentée ; conditions propres à un site **UNKNOWN** |
+| **Fonction critique** | Conséquences métier, plages et tolérances approuvées | Fonction générale documentée ; conditions d'un site **UNKNOWN** |
 | **Accès et identités** | Canaux actifs, sessions, rôles et portée | Capacités documentées ; chemin initial **UNKNOWN** |
 | **Droits sur les paramètres** | Lecture, préparation, écriture, commande ; consignes, bornes et alarmes | Question étayée par la pièce et les manuels ; droits du site **UNKNOWN** |
-| **Protections indépendantes** | Barrières hors de portée du domaine d'administration considéré | **UNKNOWN** sur les installations évoquées |
+| **Protections indépendantes** | Autorité, fonctionnement et objectif protégé | **UNKNOWN** sur les installations évoquées |
 | **Traçabilité** | Demande, transmission, acceptation, état actif et mesure | Chaîne complète **UNKNOWN** |
 | **Télémaintenance et astreinte** | Décision, révocation, continuité d'alarme et accès de secours | Difficultés **REPORTED** ; répartition contractuelle **UNKNOWN** |
-| **Récupération** | Référence saine, sources de paramètres, validation physique et métier | Capacités de transfert documentées ; mécanisme des réapparitions **UNKNOWN** |
+| **Récupération** | Référence saine, sources de paramètres, validation physique et métier | Transferts documentés ; mécanismes de réapparition **UNKNOWN** |
 
-Cette carte sert à examiner les combinaisons de droits : une autorité peut-elle agir à la fois sur la régulation, sur ce qui borne son action et sur ce qui la rend visible ? Le *blast radius* décrit ici la portée technique de cette autorité sur les comptes, superviseurs, régulateurs et établissements. La portée opérationnelle dépend des fonctions frigorifiques affectables, de leur configuration et des protections indépendantes. Les conséquences métier comprennent les pertes de marchandises, l'interruption d'exploitation, la mobilisation des frigoristes et les perturbations logistiques. Leur étendue demande une évaluation propre à l'installation et à ses dépendances : une compromission techniquement limitée peut avoir des répercussions entre organisations.
+Le *blast radius* désigne ici la **portée technique de l'autorité** sur les comptes, superviseurs, régulateurs et établissements. La portée opérationnelle dépend des fonctions frigorifiques affectables, des modes et des protections. Les conséquences économiques et métier peuvent comprendre pertes de marchandises, interruption, mobilisation des mainteneurs et perturbations logistiques ; elles exigent une évaluation propre à l'installation. Une autorité techniquement locale peut ainsi avoir des répercussions entre organisations, sans disposer de droits sur leurs systèmes.
 
-Les parties 2-1 et 2-4 d'IEC 62443 situent les responsabilités des exploitants et des prestataires ; les parties 3-2 et 3-3 concernent le risque et les exigences système ; les parties 4-1 et 4-2 traitent du développement et des composants. Ce rapprochement thématique sert à orienter la vérification. Une analyse de conformité demanderait les éditions applicables et l'examen des exigences détaillées.[11](#ref-11) Les guides ANSSI apportent un cadre pour l'administration, la télémaintenance et l'exploitation, y compris dans des environnements gérés par plusieurs intervenants.[10](#ref-10)
+Pour chaque canal, il faut établir qui **décide et finance, administre, intervient, vérifie, révoque et garantit le repli**. La chaîne de maintenance peut concentrer une capacité d'action sans plateforme centrale unique. Cette synthèse ne revendique ni méthode nouvelle d'audit ni efficacité comparative mesurée.
 
-Trois exercices sur table permettent de commencer : examiner les droits sur une consigne et sa borne ; fermer un accès distant en préservant l'alerte et l'astreinte ; rétablir une référence fiable après la réapparition d'une anomalie. Ils peuvent révéler une permission trop large, une responsabilité vacante ou une dépendance de continuité. Leur utilité comparative reste à mesurer.
+Les parties 2-1 et 2-4 d'IEC 62443 situent les responsabilités des exploitants et des prestataires ; les parties 3-2 et 3-3 concernent le risque et les exigences système ; les parties 4-1 et 4-2 traitent du développement et des composants. Ce rapprochement thématique oriente les vérifications. Une évaluation de conformité demanderait les éditions et exigences détaillées applicables.[11](#ref-11) L'annexe A conserve cette séparation entre norme, recommandation ANSSI, qualification MITRE et proposition issue de l'étude.
 
-## 4. Éprouver la portée de cette lecture
+### Quel état de référence permet la récupération ?
 
-Une transposition pourrait être pertinente lorsqu'une installation associe une fonction physique critique, une administration numérique qui peut l'influencer, une maintenance impliquant plusieurs organisations et des protections dont l'indépendance reste à vérifier.
+Des témoignages décrivent la réapparition d'anomalies après correction ou isolement (**REPORTED**). Une nouvelle anomalie peut correspondre à une nouvelle écriture distante, à un retransfert, à un forçage, à une programmation locale, à des paramètres restés actifs ou à un effet physique différé. Ces explications demandent des traces distinctes.
 
-La chaîne du froid pharmaceutique, certaines GTB/GTC sensibles, de petites installations d'eau ou d'assainissement, des serres pilotées et des systèmes énergétiques constituent des terrains candidats. Il s'agit d'une **HYPOTHESIS de transfert**. Leur exposition, leur maturité et leur niveau de risque sortent des mesures de cette enquête.
+La documentation AK-SM 800 décrit **Upload** du régulateur vers la base du superviseur et **Download** de cette base vers les régulateurs.[8c](#ref-8c) Les générations XWEB documentent aussi des fonctions d'import, de transfert et de programmation.[6](#ref-6) Une base ou une sauvegarde non fiabilisée pourrait réintroduire des réglages anormaux ; cette possibilité demeure une **HYPOTHESIS** pour les réapparitions rapportées. Le dossier n'établit pas de mécanisme autonome de réécriture hostile par l'interface Danfoss AK-PI.
 
-Une évaluation autorisée pourrait comparer un audit de référence fondé sur IEC 62443 et les guides ANSSI au même audit complété par cette représentation compacte de l'autorité, des délégations et de la reprise. Les critères devraient être fixés avant l'exercice : permissions critiques supplémentaires confirmées, responsabilités clarifiées, révocations praticables, traçabilité des écritures, continuité des alarmes, capacité de récupération et charge de travail.
+Un récit Dixell évoque une configuration de sonde inadaptée ; d'autres récits Danfoss concernent des anomalies réapparues. Ils ne décrivent pas les mêmes installations. Les modes de repli d'une famille Dixell ne peuvent pas expliquer, à eux seuls, un événement Danfoss. De même, un composant de planification actif ne démontre pas un rejeu arbitraire de paramètres.
 
-L'évaluation doit accepter un gain nul, une fausse piste ou un coût disproportionné. **Aucun pilote ni gain comparatif n'est établi à ce jour.** Cette proposition reste une traduction opérationnelle à éprouver face aux pratiques d'audit existantes.
+Une validation de reprise doit identifier la référence approuvée, contrôler le sens des transferts, les programmations et les forçages, puis vérifier les valeurs actives, les alarmes et les mesures physiques pertinentes. L'état du superviseur, celui du régulateur et celui d'une sauvegarde peuvent diverger ; une sauvegarde récente peut déjà contenir une configuration anormale. La remise en service doit être validée par le professionnel qualifié et l'exploitant selon les contraintes du procédé.
 
-## 5. Limites et éléments qui pourraient modifier l'analyse
+Trois exercices sur table peuvent commencer cette vérification : consigne et borne modifiées sous la même autorité ; fermeture nocturne d'un accès avec maintien de l'alerte ; réapparition d'une anomalie après correction. Ils peuvent révéler une permission trop large ou une décision impossible à prendre. Aucun essai perturbant une installation en service n'est proposé ici.
 
-Le corpus autorise une analyse d'architecture et de scénarios. Sa couverture demeure insuffisante pour reconstituer une chaîne forensique complète chez une victime.
+## 4. Des questions d'investigation transférables
 
-Les lacunes déterminantes sont :
+La démarche peut être utile ailleurs lorsqu'une fonction physique dépend d'une administration numérique, d'intervenants multiples et de protections à vérifier. Il s'agit d'une **HYPOTHESIS de transfert**, sans vulnérabilité démontrée dans les secteurs suivants :
 
-- l'origine de la première session et de la première écriture acceptée ;
-- le modèle, le firmware et les permissions effectives des régulateurs photographiés ;
-- des mesures physiques indépendantes reliées aux événements visibles ;
-- une comparaison contrôlée entre installations affectées et épargnées ;
-- des éléments recueillis directement auprès d’exploitants, directions d’enseignes et DSI de GMS sur les décisions d’accès, les contrats et la reprise ;
+| Environnement candidat | Question transférable |
+|---|---|
+| Eau et assainissement | Qui peut modifier une consigne de traitement et son contrôle, et quelle mesure indépendante détecte une dérive ? |
+| Énergie | Jusqu'où s'étendent les droits de téléconduite, et quelles protections restent opérantes dans ce domaine d'autorité ? |
+| GTB/GTC | Qui administre les accès des intégrateurs et quels automatismes ou alarmes restent autonomes ? |
+| Chaîne du froid pharmaceutique | Quelle source de mesure et quelle procédure permettent de qualifier la conservation et la reprise ? |
+| Automatisation agricole | Quelles commandes et synchronisations locales peuvent élargir l'effet d'un accès de maintenance ? |
+
+Ces questions servent à chercher les frontières, les preuves et les contre-exemples. L'exposition, la maturité et le risque de ces secteurs n'ont pas été mesurés. Aucun pilote ni gain comparatif d'audit n'est établi.
+
+## 5. Limites et éléments susceptibles de modifier l'analyse
+
+Le corpus permet une analyse d'architecture et de scénarios, avec une couverture insuffisante pour reconstituer une chaîne forensique complète chez une victime. Les lacunes déterminantes restent :
+
+- la provenance de la première session et de la première écriture anormale acceptée ;
+- les modèles, firmwares, bibliothèques et permissions réellement utilisés ;
+- des mesures physiques indépendantes reliées aux actions visibles ;
+- des paires affecté/épargné comparables et contrôlées ;
+- les décisions d'accès et contrats recueillis directement auprès des exploitants, enseignes et DSI ;
 - une autorité d'écriture et un événement commun vérifiés sur plusieurs établissements ;
-- un artefact attestant une altération logicielle, une persistance hostile ou une attribution.
+- une preuve d'altération logicielle, de persistance hostile ou d'attribution.
 
-Les questionnaires sont volontaires et déclaratifs. Les archives d'exposition portent sur des objets d'index. La pièce photographique et les témoignages ont une provenance documentée à l'échelle de leur consultation, avec une authenticité industrielle **UNKNOWN**. Ces limites s'appliquent aux conclusions qui en dépendent.
+Les questionnaires sont volontaires et déclaratifs. Les archives d'exposition portent sur des objets d'index, sans lien établi avec les victimes. La photographie et les témoignages ont une provenance documentée à l'échelle de leur consultation ; l'authenticité industrielle reste **UNKNOWN**. Les documents internes partagent leurs sources et n'apportent pas de corroborations indépendantes supplémentaires. La revue contradictoire du 18 octobre est une contre-lecture interne conduite avec le même assistant, sans validation par un expert extérieur.
 
-Plusieurs résultats pourraient infléchir la lecture : un journal natif XWEB reproduisant le motif observé préciserait l'explication des groupes d'écritures ; une matrice de permissions sur le modèle exact pourrait établir la séparation entre consigne et borne ; une protection physique indépendante pourrait réduire fortement les conséquences possibles ; des traces fiables pourraient rattacher une anomalie réapparue à la restauration ou à une voie d'accès différente.
+Un journal natif de référence pourrait préciser ce que signifie une ligne d'écriture ; un refus documenté pourrait invalider une interprétation de paramètre ; une matrice de droits pourrait établir une séparation d'autorité ; une protection indépendante pourrait limiter les effets ; une relecture horodatée pourrait distinguer nouvel ordre et comportement différé. Une démonstration autorisée établirait une faisabilité, dont l'utilisation pendant l'incident resterait à prouver.
 
-Ces éléments serviraient à corriger les mécanismes proposés et leur portée. L'intention supposée d'un adversaire doit, elle aussi, rester distincte de son comportement visible, du mécanisme technique et de l'effet mesuré.
+Le comportement visible, le mécanisme technique, l'effet mesuré, l'intention et l'attribution demeurent cinq questions distinctes. Les lacunes du dossier ne sont ni des preuves d'absence ni des invitations à choisir le scénario le plus convaincant.
 
-## 6. Questions pour la revue technique
+## 6. Une étude ouverte à la contradiction technique
 
-L'étude relie la surface observable aux permissions effectives, puis aux conséquences possibles et aux conditions de reprise. Son intérêt repose sur des questions vérifiables : quels droits rendent une fonction physique modifiable, quelles protections résistent à ces droits et quels acteurs peuvent décider et contrôler la remise en service ?
+Cette v1.0 est une étude indépendante, proposée à la critique des professionnels du froid, de l'OT et de l'Offensive Security. Trois questions restent prioritaires :
 
-La revue attendue porte en priorité sur :
+| Question | Contre-épreuve utile |
+|---|---|
+| **Que journalise exactement une écriture XWEB ?** | Référence constructeur ou essai autorisé reliant action, lignes du journal, erreurs, acquittement pertinent et relecture, avec produit et version. |
+| **Quelles sont les limites d'autorité réelles sur les régulateurs ?** | Matrice rôles/fonctions/canaux et règles de validation sur une génération identifiée, y compris administration locale et passerelles alternatives. |
+| **Quelles protections préservent le procédé lorsque la supervision est compromise ?** | Description assainie d'une barrière : autorité distincte, fonctionnement physique et objectif métier réellement protégé. |
 
-- la séparation des permissions d'édition, de transfert et de commande selon les générations ;
-- le format des journaux XWEB et la preuve d'acceptation par les régulateurs ;
-- l'indépendance des protections et des alarmes ;
-- la provenance des configurations restaurées et l'organisation de l'astreinte.
-
-Les contributions utiles précisent le produit, la version, la source ou les conditions d'une reproduction autorisée, puis la portée et les explications concurrentes. Les modalités de correction figurent dans [CORRECTIONS.md](CORRECTIONS.md).
+Les contradictions documentées, corrections techniques et résultats d'essais autorisés sont bienvenus. Une contribution utile distingue capacité produit, expérience de terrain, essai de faisabilité et fait d'incident ; elle indique ce qui ferait changer l'interprétation. Les données sensibles, configurations de tiers et journaux bruts restent hors des issues et pièces jointes. La contribution doit respecter les contraintes des équipes en remédiation. Les modalités figurent dans [CORRECTIONS.md](CORRECTIONS.md).
 
 ## Méthode, provenance et reproductibilité
 
-**Classification.** **OBSERVED** qualifie un contenu directement reçu ou examiné, sans authentifier l'événement sous-jacent. **REPORTED** qualifie un fait déclaré par un tiers. **DOCUMENTED** qualifie un fait ou une capacité attesté par une source compétente, en séparant documentation produit et information d'incident. **HYPOTHESIS** qualifie une interprétation ou un scénario à tester. **UNKNOWN** qualifie une information non déterminée. **INDETERMINATE** est le jugement conservé sur les hypothèses d'accès H1–H5.
+**Classification.** **OBSERVED** : contenu directement reçu ou examiné, sans authentifier l'événement sous-jacent. **REPORTED** : fait déclaré par un tiers. **DOCUMENTED** : fait ou capacité attesté par une source compétente, en séparant information d'incident et documentation produit. **HYPOTHESIS** : interprétation ou scénario à tester. **UNKNOWN** : information non déterminée. **INDETERMINATE** reste le jugement sur H1–H5.
 
-**Corpus.** Le texte dérive de l'étude technique longue v0.2, du référentiel maître v8.3.1 et de quatre annexes spécialisées v1.1 : ASM/EASM, Security Exposure Assessment, ACH H1–H5 et Adversary Posture. Ces synthèses partagent des sources et restent des analyses dérivées. Elles ne sont pas comptées comme corroborations indépendantes.
+**Démarche réellement conduite.** ASM/EASM, Attack Path Analysis, Adversary Posture et analyse fonctionnelle des conséquences constituent les travaux de l'enquête. La confrontation H1–H5 est inspirée des principes ACH.[16](#ref-16) IPOE/FM 2-0 et AJP-5 ont fourni des concepts sélectifs sur l'environnement, les capacités, les moyens, les contraintes et les modes d'action ; leurs processus doctrinaux complets n'ont pas été appliqués.[14](#ref-14)[15](#ref-15) Les convergences avec INL CCE éclairent l'analyse des conséquences et des protections ; aucun CCE Assessment n'a été conduit.[12](#ref-12)
 
-**Matériaux de l'enquête.** Ils comprennent des archives passives d'exposition, des contrôles hors ligne, des publications de recherche, des manuels constructeurs, deux questionnaires volontaires, un témoignage direct hors formulaires et la photographie de journal XWEB visible dans une capture reçue. Pour cette dernière, la provenance de consultation est celle consignée dans l'addendum v8.3.1 : publication présentée comme publique, page originale et conditions de collecte non vérifiées directement. Les pièces de provenance sont conservées hors du dépôt de publication.
+**Provenance éditoriale.** La base est l'archive v0.5 GMS du 17 octobre, SHA-256 `ea60d66547bc3a33691eef1f7a6edec52cee3f30e5215fc290de52064c7e53af`. La v1.0 intègre les précisions de la revue interne consolidée v2 du 18 octobre, confrontées au référentiel maître v8.3.1, à l'étude longue v0.2 et aux quatre annexes spécialisées v1.1. Ces documents de travail restent hors du paquet de publication et sont préservés. Les changements sont résumés dans [CORRECTIONS.md](CORRECTIONS.md).
 
-**Questionnaires.** Les exports de réponses analysés au 17 octobre comportent 43 participations techniques et 25 participations de gouvernance. Les décomptes publiés ici ont été contrôlés sur ces fichiers ; la sélection de 42 contributions techniquement exploitables est celle du traitement analytique consigné. Les deux formulaires peuvent avoir des participants communs. Les résultats expriment des déclarations au niveau de la réponse.
+**Matériaux et contrôles.** Les sources comprennent publications, manuels, bibliothèques constructeur publiques, archives passives, questionnaires volontaires, témoignage distinct et capture reçue de la photographie XWEB. La comparaison des sept `.xw5` est statique, par entrées exactes du dictionnaire ; les fichiers fabricant et résultats techniques ne sont pas redistribués. Les faits d'incident sous-jacents aux témoignages et à la photographie ne sont pas authentifiés indépendamment.
 
-**Contrôle externe.** Le lecteur peut examiner les sources publiques citées et les capacités qu'elles documentent. L'authentification indépendante de la photographie, des témoignages et des résultats individuels des questionnaires exige des matériaux privés absents de ce dépôt. Une démonstration produit établit une faisabilité ; son utilisation dans l'incident reste à prouver.
+**Questionnaires.** Les résultats se rapportent aux instantanés documentés au 17 octobre : 43 participations techniques, dont 42 contributions retenues, et 25 participations de gouvernance. La revue interne du 18 octobre réconcilie les deux états 24/25 et précise le groupe de 22 répondants mixtes. Les deux formulaires peuvent avoir des participants communs ; aucune jointure ne constitue un appariement de magasins. Les résultats sont publiés en agrégats, sans verbatim individuel identifiable.
 
-**Diffusion.** La photographie, sa transcription détaillée, les questionnaires bruts, les documents de scans et les informations relatives aux installations tierces restent hors publication. Le lien vers la publication contenant la photographie est également exclu. La reconstruction conserve uniquement les catégories nécessaires à l'analyse.
+**Reproductibilité publique.** Le lecteur peut contrôler les sources publiques, les capacités décrites et les fichiers du catalogue fabricant. L'authentification de la photographie, la reproduction des calculs sur les réponses individuelles et les rapprochements d'exposition nécessiteraient les matériaux privés exclus. Cette limite de reproductibilité demeure explicite ; les contrôles internes ne remplacent pas une revue technique externe.
+
+**Diffusion.** Aucun questionnaire brut, photographie, journal détaillé, export de cibles, configuration d'installation ou identité de répondant n'est inclus. Aucun lien ne renvoie à la publication contenant la photographie. Les codes et identifiants de bibliothèque cités sont ceux des produits publics, sans valeurs d'incident ni identifiants d'installation.
+
 
 ## Références publiques
 
-Les références portent sur les versions identifiées ci-dessous. Contrôle éditorial effectué le **17 octobre 2026** ; les limites d'accès sont précisées à l'entrée concernée. Les pages et documents publics peuvent évoluer.
+Les références concernent les familles et éditions indiquées. Contrôle éditorial actualisé le **18 octobre 2026** ; les limites d’accès sont précisées aux entrées concernées. Les documents publics peuvent évoluer.
 
-<a id="ref-1"></a> **[1]** CERT-FR, [*Incident de sécurité ciblant les contrôleurs à distance des installations de réfrigération*](https://cert.cyber.gouv.fr/alerte/CERTFR-2026-ALE-012/), CERTFR-2026-ALE-012. Gestion détaillée du document consultée le 17 octobre 2026 : version initiale le 12 octobre ; ajout d'autres équipements ciblés le 13 ; mise à jour des recommandations le 16. Périmètre des familles et recommandations de protection et de reprise.
+<a id="ref-1"></a> **[1]** CERT-FR, [*Incident de sécurité ciblant les contrôleurs à distance des installations de réfrigération*](https://cert.cyber.gouv.fr/alerte/CERTFR-2026-ALE-012/), CERTFR-2026-ALE-012. Gestion détaillée et JSON contrôlés le 18 octobre 2026 : version initiale le 12 octobre ; ajout d'autres équipements ciblés le 13 ; mise à jour des recommandations le 16. Périmètre des familles et recommandations de protection et de reprise.
 
 <a id="ref-2"></a> **[2]** ONYPHE, [*Frigo d'importance vitale : analyse de la cyberattaque sur la grande distribution*](https://blog.onyphe.io/frigo-dimportance-vitale-analyse-de-la-cyberattaque-sur-la-grande-distribution/), 12 octobre 2026, mise à jour du 15 octobre. Mesures d'exposition et limites de reconnaissance des produits.
 
@@ -269,15 +344,20 @@ Les références portent sur les versions identifiées ci-dessous. Contrôle éd
 
 <a id="ref-4"></a> **[4]** Aleksandr Yampolskiy et Richard Hummel, SecurityScorecard/Driftnet, [*Hackers Turned Supermarket Refrigerators Into Heaters*](https://securityscorecard.com/blog/hackers-turned-supermarket-refrigerators-into-heaters/), publication de l'éditeur datée du 14 octobre 2026, collecte du 13 octobre. Publication de l'éditeur et passages utiles contrôlés dans la page intégrale. La consultation initiale de l'enquête reposait sur des captures de l'article des auteurs.
 
-<a id="ref-5"></a> **[5]** Amir Zaltzman, Claroty Team82, [*Freeze the Controller, Defrost the Food: Uncovering Vulnerabilities in Danfoss Refrigeration Controllers*](https://blog.claroty.com/team82/research/freeze-the-controller-defrost-the-food-uncovering-vulnerabilities-in-danfoss-refrigeration-controllers) et [*Chilling Discoveries: Unpacking Vulnerabilities in Copeland XWEB Pro Controllers*](https://blog.claroty.com/team82/research/chilling-discoveries-unpacking-vulnerabilities-in-copeland-xweb-pro-controllers), 9 août 2026. Recherches sur AK-SM 800A et XWEB PRO ; exploitation dans les incidents d'octobre **UNKNOWN**.
+<a id="ref-5"></a> **[5]** Amir Zaltzman, Claroty Team82, [*Freeze the Controller, Defrost the Food: Uncovering Vulnerabilities in Danfoss Refrigeration Controllers*](https://blog.claroty.com/team82/research/freeze-the-controller-defrost-the-food-uncovering-vulnerabilities-in-danfoss-refrigeration-controllers) et [*Chilling Discoveries: Unpacking Vulnerabilities in Copeland XWEB Pro Controllers*](https://blog.claroty.com/team82/research/chilling-discoveries-unpacking-vulnerabilities-in-copeland-xweb-pro-controllers), Publication initiale le 9 août 2026, pages mises à jour le 14 octobre. Recherches sur AK-SM 800A et XWEB PRO ; exploitation dans les incidents d'octobre **UNKNOWN**.
 
-<a id="ref-6"></a> **[6]** Copeland/Dixell, [*XWEB EVO Operating Manual*, v5.6.0](https://webapps.copeland.com/Dixell/Content/Pages/Manuals/XWEBEVO/XWEBEVOV5.6.0OPERATION/XWEB-EVO-r5.6.0-OPR-EN.pdf), 2 octobre 2020, section 3.4.2.2.3 *Parameters* et sections *Global Commands* / *Scheduler* ; [*XWEB PRO Operating Manual*, r1.2.0](https://webapps.copeland.com/Dixell/Content/Pages/Manuals/XWEBPRO/XWEBPROV1.2OPERATION/XWEB-PRO-OPR-EN.pdf), 29 mars 2023, sections *Parameters*, *Users* (permissions) et *Modbus TCP/IP Gateway*, pp. 104–105 du PDF. Capacités propres à chaque génération.
+<a id="ref-6"></a> **[6]** Copeland/Dixell, [*XWEB EVO Operating Manual*, v5.6.0](https://webapps.copeland.com/Dixell/Content/Pages/Manuals/XWEBEVO/XWEBEVOV5.6.0OPERATION/XWEB-EVO-r5.6.0-OPR-EN.pdf), 2 octobre 2020, section 3.4.2.2.3 *Parameters*, profils, *System Logs*, *Maintenance Mode*, *Scheduler* et FAQ Classic/EVO ; [*XWEB PRO Operating Manual*, r1.2.0](https://webapps.copeland.com/Dixell/Content/Pages/Manuals/XWEBPRO/XWEBPROV1.2OPERATION/XWEB-PRO-OPR-EN.pdf), 29 mars 2023, sections *Parameters*, *Users* (permissions) et *Modbus TCP/IP Gateway*, pp. 104–105 du PDF. Capacités propres à chaque génération.
 
 <a id="ref-7"></a> **[7]** Copeland, [*XM679K v5.4 User Manual*](https://media.copeland.com/332dde01-2d96-498d-8d50-b16d00560031/026-1223%20XM679K%20V5.4%20Rev0%20Manual.pdf), document 026-1223 **R3**, ©2025, section 16, tableau 16-1, p. 29 imprimée / p. 34 du PDF. La mention « Rev0 » reste dans le nom du fichier ; la révision R3 est celle du document consulté.
 
+<a id="ref-7a"></a> **[7a]** Dixell, [*XM670K / XM679K*](https://webapps.copeland.com/Dixell/Content/Pages/Manuals/XM400600/XM670-679K/XM670K-XM679K-FR.pdf), français, r1.0 du 3 avril 2015, tableaux des paramètres, notamment p. 8. `ddA` et `FAd` : lecture des tableaux, avec réserve sur des libellés de la prose.
+
+<a id="ref-7b"></a> **[7b]** Dixell, [*XM669K / XM679K*, v5.4d](https://webapps.copeland.com/Dixell/Content/Pages/Manuals/XM400600/XM669K-XM679KR5.4/XM669K-XM679K-FR-r5.4.pdf), français, 28 mars 2022, précautions, connexion LAN/MultiMaster, paramètres de régulation, dégivrage et alarmes ; notamment `rSE`, `LSP`, `LMd`, `dEM`, `ALC`/`ALU` et tableaux. Périmètre propre à cette édition.
+
+
 <a id="ref-8a"></a> **[8a]** Danfoss, [*Remote Connection to AK-PC Pack Controller: Tunneling through AK-SM System Manager in Service Tool*](https://assets.danfoss.com/documents/latest/375642/AQ486315982105en-000101.pdf), avril 2024, AQ486315982105en-000101. Canal de maintenance, TCP/1041 et niveau Supervisor dans le cas décrit.
 
-<a id="ref-8b"></a> **[8b]** Danfoss, [*Tech Insider*, août 2025](https://assets.danfoss.com/documents/latest/525773/AO535443524000en-010101.pdf), AO535443524000en-010101, section AK-SM 800A R4.3.1, pp. 6–8 ; [*AK-SM 800A Series*, rubrique Session Control](https://www.danfoss.com/en/service-and-support/downloads/dcs/adap-kool-software/ak-sm-800a). Passages du bulletin contrôlés dans le PDF ; rubrique de support contrôlée par son contenu indexé.
+<a id="ref-8b"></a> **[8b]** Danfoss, [*Tech Insider*, août 2025](https://assets.danfoss.com/documents/latest/525773/AO535443524000en-010101.pdf), AO535443524000en-010101, section AK-SM 800A R4.3.1, pp. 6–8 ; [*AK-SM 800A Series*, rubrique Session Control](https://www.danfoss.com/en/service-and-support/downloads/dcs/adap-kool-software/ak-sm-800a). Passages du bulletin contrôlés dans le PDF ; rubrique de support contrôlée antérieurement par son contenu indexé, non récupérable directement le 18 octobre (HTTP 403). Le [guide AK-SM 800A](https://assets.danfoss.com/documents/latest/584955/BC337629891709en-001001.pdf), BC337629891709en-001001, avril 2026, §5.5, confirme directement les fonctions de Session Control ; ce PDF constructeur a été contrôlé intégralement pour les passages cités.
 
 <a id="ref-8c"></a> **[8c]** Danfoss, [*User Guide — AK-System Manager, AK-SM 800 Series*](https://assets.danfoss.com/documents/latest/56759/BC316842192932en-001001.pdf), BC316842192932en-001001, mars 2020, section *System Upload / Download*, p. 15. Section contrôlée dans le PDF constructeur récupéré lors de la vérification finale.
 
@@ -291,13 +371,16 @@ Les références portent sur les versions identifiées ci-dessous. Contrôle éd
 
 <a id="ref-12"></a> **[12]** Idaho National Laboratory, [*Consequence-driven Cyber-informed Engineering (CCE)*](https://inl.gov/national-security/cce/), présentation de l'approche par conséquences et posture de l'adversaire.
 
-<a id="ref-13"></a> **[13]** MITRE, [*ATT&CK for ICS*](https://attack.mitre.org/matrices/ics/) : [T0836 — Modify Parameter](https://attack.mitre.org/techniques/T0836/), [T0838 — Modify Alarm Settings](https://attack.mitre.org/techniques/T0838/), [T0878 — Alarm Suppression](https://attack.mitre.org/techniques/T0878/), [M0800 — Authorization Enforcement](https://attack.mitre.org/mitigations/M0800/), [DET0776 — Detection of Modify Parameter](https://attack.mitre.org/detectionstrategies/DET0776/), [DET0777 — Detection of Modify Alarm Settings](https://attack.mitre.org/detectionstrategies/DET0777/). Identifiants et objets contrôlés au 17 octobre 2026.
+<a id="ref-13"></a> **[13]** MITRE, [*ATT&CK for ICS*](https://attack.mitre.org/matrices/ics/) : [T0836 — Modify Parameter](https://attack.mitre.org/techniques/T0836/), [T0838 — Modify Alarm Settings](https://attack.mitre.org/techniques/T0838/), [T0878 — Alarm Suppression](https://attack.mitre.org/techniques/T0878/), [M0800 — Authorization Enforcement](https://attack.mitre.org/mitigations/M0800/), [DET0776 — Detection of Modify Parameter](https://attack.mitre.org/detectionstrategies/DET0776/), [DET0777 — Detection of Modify Alarm Settings](https://attack.mitre.org/detectionstrategies/DET0777/). Identifiants et objets contrôlés le 18 octobre 2026.
 
-<a id="ref-14"></a> **[14]** U.S. Army, *FM 2-0, Intelligence*, 1er octobre 2023, chapitre 5, IPOE. Édition identifiée dans le [catalogue doctrinal officiel IKN](https://www.ikn.army.mil/apps/IKNHostedWebsites/Home/LoadPublishedPage?PageUID=30c204aa-de54-471a-8252-2df7d9f5a5cc). Le PDF intégral de cette édition n'a pas pu être récupéré lors du contrôle ; son usage analytique est repris du corpus de travail.
+<a id="ref-14"></a> **[14]** U.S. Army, *FM 2-0, Intelligence*, 1er octobre 2023 ; concepts IPOE mobilisés sélectivement dans le corpus. Édition identifiée dans le [catalogue doctrinal officiel IKN](https://www.ikn.army.mil/apps/IKNHostedWebsites/Home/LoadPublishedPage?PageUID=30c204aa-de54-471a-8252-2df7d9f5a5cc). Le texte intégral de cette édition n’a pas été récupéré lors du contrôle ; aucune référence de chapitre ni application complète de la doctrine n’est revendiquée.
 
 <a id="ref-15"></a> **[15]** OTAN, [*AJP-5, Allied Joint Doctrine for the Planning of Operations*](https://www.gov.uk/government/publications/allied-joint-publication-ajp-05a-allied-joint-doctrine-for-the-planning-of-operations), édition B, version 1, 2026. Notice du Ministry of Defence mise à jour le 14 octobre 2026 ; édition B annoncée le 19 juin. Usage par analogie analytique.
 
 <a id="ref-16"></a> **[16]** Richards J. Heuer Jr., [*Psychology of Intelligence Analysis*](https://www.cia.gov/resources/csi/books-monographs/psychology-of-intelligence-analysis-2/), CIA Center for the Study of Intelligence, 1999, chapitre 8, *Analysis of Competing Hypotheses*, consulté dans le PDF public de l'ouvrage.
+
+
+<a id="ref-17"></a> **[17]** Copeland/Dixell, [catalogue XWEB historique](https://webapps.copeland.com/Dixell/Pages/XWEB) et [catalogue XWEB EVO](https://webapps.copeland.com/Dixell/Pages/XWEB_EVO), consultés le 18 octobre 2026. Fichiers publics XM679K comparés : [v0.9](https://webapps.copeland.com/Dixell/Content/Libraries/Xweb/XM679K_003200090000.xw5), [v1.3](https://webapps.copeland.com/Dixell/Content/Libraries/Xweb/XM679K_0032000D0001.xw5), [v3.4](https://webapps.copeland.com/Dixell/Content/Libraries/Xweb/XM679K_003200220012.xw5), [v3.9](https://webapps.copeland.com/Dixell/Content/Libraries/Xweb/XM679K_003200270018.xw5), [v4.2](https://webapps.copeland.com/Dixell/Content/Libraries/Xweb/XM679K_0032002A001D.xw5), [v4.3](https://webapps.copeland.com/Dixell/Content/Libraries/Xweb/XM679K_0032002B001E.xw5) et [v5.4](https://webapps.copeland.com/Dixell/Content/Libraries/Xweb/XM679K_003200360029.xw5). Comparaison statique de leurs dictionnaires de paramètres ; aucune exécution ni identification de firmware victime. Les empreintes et contrôles sont conservés dans le dossier de recherche privé.
 
 ---
 
@@ -305,7 +388,7 @@ Les références portent sur les versions identifiées ci-dessous. Contrôle éd
 
 Cette matrice relie les résultats des sections 1 à 3 à des vérifications autorisées. La *supply chain* désigne ici les délégations d'accès, de décision et de maintenance ; l'altération logicielle relève de H5.
 
-**Références.** IEC 62443 situe les parties et domaines : éditions et clauses restent à examiner pour une évaluation de conformité. **SI** et **GTB** désignent les deux guides ANSSI [10](#ref-10), avec leurs classes C1/C2 et niveaux N1/N2 à contextualiser. MITRE apporte classification et détection ; INL CCE, une méthode par conséquences. Les vérifications ci-dessous sont proposées par l'étude.
+**Références.** IEC 62443 situe les parties et domaines : éditions et clauses restent à examiner pour une évaluation de conformité. **SI** et **GTB** désignent les deux guides ANSSI [10](#ref-10), avec leurs classes C1/C2 et niveaux N1/N2 à contextualiser. MITRE apporte classification et détection ; INL CCE, un point de comparaison pour le raisonnement par conséquences, sans application CCE dans cette enquête. Les vérifications ci-dessous sont proposées par l'étude.
 
 ### A1. Autorité de modification des paramètres et indépendance des protections
 
@@ -314,7 +397,7 @@ Cette matrice relie les résultats des sections 1 à 3 à des vérifications aut
 | **Problème identifié** | La pièce XWEB présente des écritures apparentes concernant une consigne, sa limite applicative et des paramètres d'alarme. La capacité d'une même autorité à modifier ces fonctions doit être vérifiée sur la génération et la configuration concernées. |
 | **Preuve disponible** | Contenu de capture **OBSERVED** ; sémantique par famille **DOCUMENTED** ; droits réels, acceptation et protections indépendantes **UNKNOWN**. |
 | **Références pertinentes** | **Normes :** IEC 62443-3-3 et 4-2, contrôle d'usage et intégrité ; 4-1, développement sécurisé [11](#ref-11). **Recommandations :** SI R85/C1, droits par profil ; R196/C2, contrôles des compteurs/horloges, cohérence et plages dans la logique de l'automate ; R198/C2, logique et vérification des limites de consigne dans l'automate (pp. 94–95 imprimées) [10](#ref-10). **MITRE :** M0800, autorisation [13](#ref-13). |
-| **Vérification proposée** | Relever les droits par fonction et canal (Web, relais, protocole), sur modèle et firmware identifiés. Vérifier qui peut modifier les contrôles embarqués et leurs bornes ; établir les protections hors de portée de ces droits. La transposition des recommandations sur les automates aux régulateurs frigorifiques dépend du modèle et de la configuration. |
+| **Vérification proposée** | Relever les droits par fonction et canal (Web, relais, protocole), sur modèle et firmware identifiés. Vérifier qui peut modifier les contrôles embarqués et leurs bornes ; établir les protections hors de portée de ces droits, leur fonctionnement physique et leur objectif protégé. La transposition des recommandations sur les automates aux régulateurs frigorifiques dépend du modèle et de la configuration. |
 | **Responsabilités à établir** | Exploitant/DSI : autorisations ; frigoriste/intégrateur : régulation ; fabricant : capacités et séparations offertes. |
 | **Résultat attendu** | Matrice fonctions/rôles/canaux et liste des protections dont l'indépendance est établie, limitée ou **UNKNOWN**. |
 
@@ -335,8 +418,8 @@ Cette matrice relie les résultats des sections 1 à 3 à des vérifications aut
 |---|---|
 | **Problème identifié** | Relier la découvrabilité à une autorité d'écriture, puis à ses conséquences, exige de vérifier chaque frontière. |
 | **Preuve disponible** | Index **OBSERVED**, tiers **REPORTED**, capacités **DOCUMENTED**, chemins **HYPOTHESIS** ; accès initial et intentions **UNKNOWN**. H1–H5 **INDETERMINATE**, COA-A/B/C ouverts. |
-| **Références pertinentes** | **Normes :** IEC 62443-3-2, risque, zones et conduits ; 3-3, restrictions des flux [11](#ref-11). **Recommandations :** GTB R4/N1 et R5/N2, cloisonnement et filtrage [10](#ref-10). **MITRE :** T0836/T0838 compatibles ; T0878 **UNKNOWN** [13](#ref-13). **Méthode :** INL CCE, conséquences critiques et posture adverse [12](#ref-12). |
-| **Vérification proposée** | Parcourir AP-01 à AP-06 depuis les informations accessibles à l'adversaire hypothétique : prérequis, droits, contre-indices, points de rupture. Distinguer régulateurs, superviseurs et établissements ; borner les conséquences par les protections et moyens de reprise vérifiés. |
+| **Références pertinentes** | **Normes :** IEC 62443-3-2, risque, zones et conduits ; 3-3, restrictions des flux [11](#ref-11). **Recommandations :** GTB R4/N1 et R5/N2, cloisonnement et filtrage [10](#ref-10). **MITRE :** T0836/T0838 compatibles ; T0878 **UNKNOWN** [13](#ref-13). **Comparaison méthodologique :** INL CCE, conséquences critiques et posture adverse [12](#ref-12). |
+| **Vérification proposée** | Parcourir AP-01 à AP-06 depuis les informations accessibles à l'adversaire hypothétique : prérequis, droits, contre-indices, points de rupture. Distinguer régulateurs, synchronisations locales, superviseurs et établissements ; borner les conséquences par les protections et moyens de reprise vérifiés. |
 | **Responsabilités à établir** | Exploitant/métier : conséquences ; DSI, intégrateur, mainteneur : frontières ; fabricant/opérateur de plateforme : portées d'autorisation. |
 | **Résultat attendu** | Chemins annotés, portée technique des droits, fonctions frigorifiques affectables et conséquences métier distinguées ; points de rupture et preuves manquantes. |
 
@@ -347,6 +430,6 @@ Cette matrice relie les résultats des sections 1 à 3 à des vérifications aut
 | **Problème identifié** | Une configuration conservée peut réintroduire des réglages anormaux. Le journal applicatif, l'état accepté et la mesure physique couvrent des étapes distinctes. |
 | **Preuve disponible** | Réapparitions **REPORTED**, transferts constructeur **DOCUMENTED** ; mécanisme causal, première écriture acceptée et chaîne complète de traces **UNKNOWN**. |
 | **Références pertinentes** | **Normes :** IEC 62443-2-1, gestion opérationnelle ; 3-3, intégrité et disponibilité [11](#ref-11). **Recommandations :** SI R9/C1 et R10/C1, configurations et restauration ; R74/C1, cyber dans les PRA/PCA ; R206/C2, traces des changements [10](#ref-10). **Détection MITRE :** DET0776 et DET0777 [13](#ref-13). |
-| **Vérification proposée** | Identifier référence approuvée, programmations, forçages et sens des transferts. Relier session, demande, transmission, acceptation, état actif et mesure ; contrôler horloges et rétention. Définir les critères de reprise thermique et d'alarme, en tenant compte de la maintenance autorisée. |
+| **Vérification proposée** | Identifier référence approuvée, bibliothèques, modes actifs, programmations, forçages et sens des transferts. Relier session, demande, transmission, acceptation, état actif et mesure ; contrôler horloges et rétention. Définir les critères de reprise thermique et d'alarme, en tenant compte de la maintenance autorisée. |
 | **Responsabilités à établir** | Exploitant, frigoriste, DSI, intégrateur : référence, traces, restauration ; télésurveilleur et métier : continuité et validation. |
 | **Résultat attendu** | Référence saine approuvée, couverture des traces explicitée et procédure de reprise assortie d'une validation physique et métier. |

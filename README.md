@@ -1,32 +1,38 @@
-# Danfoss / XWEB : qui peut agir sur une installation frigorifique ?
+# Danfoss / XWEB
 
-Étude de cas indépendante d'Offensive Security Assessment sur les incidents de supervision frigorifique d'octobre 2026 dans le contexte des **grandes et moyennes surfaces (GMS) alimentaires** : surface observable, chemins d'administration, droits de modification des réglages frigorifiques et conditions de reprise.
+**v1.0 — Publication initiale, 18 octobre 2026**  
+**v1.0 — Initial publication, 18 October 2026**
 
-**État : prépublication v0.5, en revue privée. La diffusion publique attend l'accord explicite de l'auteur.**
+## Français
 
-Lire [l'étude](ETUDE.md). Elle examine trois questions complémentaires :
+**[Lire l'étude intégrale et l'annexe A](ETUDE.md)**
 
-- **Autorité numérique et protections :** droits de modification des consignes, limites applicatives et alarmes ; indépendance des protections.
-- **Délégation des accès et responsabilités :** enquêtes auprès des frigoristes, chaîne de maintenance, révocation et continuité opérationnelle.
-- **Investigation offensive et raisonnement tactique :** OSINT/EASM, frontières de confiance, six chemins candidats, hypothèses concurrentes et conditions de récupération.
+Les perturbations frigorifiques signalées en octobre 2026 posent trois questions : comment les équipements étaient-ils accessibles, qui pouvait modifier leur fonctionnement et pourquoi certaines installations étaient-elles épargnées ?
 
-Le manuscrit distingue observations, déclarations, documentation produit, hypothèses et inconnues. Les questionnaires sont volontaires et déclaratifs, recueillis auprès de professionnels du froid ; **les enseignes, DSI de la distribution et exploitants de magasins n'ont pas fait l'objet d'entretiens directs documentés**. La photographie XWEB n'a pas fait l'objet d'une authentification forensique. Le vecteur initial, l'autorité multisite effectivement utilisée et l'origine de la première écriture anormale acceptée demeurent indéterminés.
+Cette investigation indépendante d'Offensive Security Assessment examine le contexte des grandes et moyennes surfaces alimentaires en France. Elle relie trois contributions :
 
-L'annexe A relie les résultats de l'investigation à des vérifications opérationnelles, avec leurs niveaux de preuve, les responsabilités à établir et les résultats attendus. Elle s'appuie sur IEC 62443, les recommandations ANSSI, MITRE ATT&CK for ICS et INL CCE ; elle ne constitue pas une évaluation de conformité.
+- l'autorité numérique sur les consignes, les limites, les alarmes et les protections ;
+- la délégation des accès et des responsabilités dans la chaîne de maintenance ;
+- l'OSINT/EASM, les chemins d'attaque, les hypothèses concurrentes et les conditions de récupération.
 
-Le dossier contient uniquement le manuscrit assaini, ses références publiques, les [modalités de correction](CORRECTIONS.md) et la [licence CC BY 4.0](LICENSE.md) applicable aux textes originaux. Les photographies, données de questionnaires et informations d'installations tierces restent hors du dépôt.
+Les quatre constats d'enquête conservent la profondeur technique et leurs limites : questionnaires volontaires et déclaratifs, photographie XWEB non authentifiée, données d'exposition sans lien établi avec les victimes. Le vecteur initial, la première écriture anormale acceptée et l'autorité multisite effectivement utilisée demeurent inconnus. La revue interne ne constitue pas une validation par un expert extérieur.
 
-| Fichier | Rôle |
-|---|---|
-| [ETUDE.md](ETUDE.md) | Manuscrit v0.5 et annexe A de correspondance opérationnelle. |
-| [README.md](README.md) | Présentation, état éditorial et conditions de diffusion. |
-| [CORRECTIONS.md](CORRECTIONS.md) | Modalités de retour et journal des corrections. |
-| [LICENSE.md](LICENSE.md) | Licence CC BY 4.0 adoptée pour les textes originaux et périmètre des droits. |
-| `.gitignore` | Réduction des ajouts accidentels aux cinq fichiers prévus. |
+## English
 
-Les fichiers déjà suivis, les ajouts forcés et l'historique Git exigent un contrôle distinct du contenu. Le `.gitignore` apporte une précaution complémentaire.
+**[Read the full study and Annex A](STUDY.en.md)**
 
-Les corrections techniques sourcées sont les bienvenues. Pour signaler un incident ou une vulnérabilité, utiliser les canaux officiels du fabricant ou du CERT compétent.
+The refrigeration disruptions reported in October 2026 raise three questions: how could equipment be accessed, who could change its operation, and why were some installations spared?
 
-**Auteur (pseudonyme) : lxrider.** Les textes originaux sont placés sous **CC BY 4.0**. La diffusion publique reste soumise à une décision explicite distincte ; le dépôt demeure privé pendant la revue.
+This independent Offensive Security Assessment examines French food supermarkets and hypermarkets. It connects three contributions:
 
+- digital authority over setpoints, limits, alarms and protections;
+- delegated access and responsibilities across the maintenance chain;
+- OSINT/EASM, attack paths, competing hypotheses and recovery conditions.
+
+The four investigation findings retain their technical depth and limitations: voluntary, declarative questionnaires; an unauthenticated XWEB photograph; and exposure data without an established link to victims. The initial vector, first accepted abnormal write and multisite authority actually used remain unknown. Internal review is not validation by an external expert.
+
+## Corrections et licence / Corrections and licence
+
+Les contradictions documentées et corrections techniques sont bienvenues selon [CORRECTIONS.md](CORRECTIONS.md). Ne joindre aucune donnée sensible ou pièce privée, même dans une issue privée. / Documented challenges and technical corrections are welcome under [CORRECTIONS.md](CORRECTIONS.md). Do not attach sensitive data or private evidence, including in private issues.
+
+**Auteur / Author : lxrider.** [CC BY 4.0](LICENSE.md) s'applique aux textes originaux français, anglais et d'accompagnement, dans la limite des droits détenus. Les matériaux de tiers et pièces privées sont exclus. / [CC BY 4.0](LICENSE.md) covers the original French, English and supporting text to the extent of the author's rights. Third-party materials and private evidence are excluded.

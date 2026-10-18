@@ -1,9 +1,10 @@
-# Fichiers prévus pour la prépublication.
-# Les fichiers déjà suivis, les ajouts forcés et l'historique exigent un contrôle distinct.
+# Six fichiers prévus / Six intended files.
+# Les fichiers suivis, ajouts forcés et historique exigent un contrôle distinct.
+# Tracked files, forced additions and history require separate review.
 *
 !/.gitignore
 !/README.md
 !/ETUDE.md
+!/STUDY.en.md
 !/CORRECTIONS.md
 !/LICENSE.md
-
