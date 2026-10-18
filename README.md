@@ -3,7 +3,7 @@
 **v1.0 — Publication initiale, 18 octobre 2026**  
 **v1.0 — Initial publication, 18 October 2026**
 
-## Français
+## 🇫🇷 Français
 
 **[Lire l'étude intégrale et l'annexe A](ETUDE.md)**
 
@@ -17,7 +17,7 @@ Cette investigation indépendante d'Offensive Security Assessment examine le con
 
 Les quatre constats d'enquête conservent la profondeur technique et leurs limites : questionnaires volontaires et déclaratifs, photographie XWEB non authentifiée, données d'exposition sans lien établi avec les victimes. Le vecteur initial, la première écriture anormale acceptée et l'autorité multisite effectivement utilisée demeurent inconnus. La revue interne ne constitue pas une validation par un expert extérieur.
 
-## English
+## 🇬🇧 English
 
 **[Read the full study and Annex A](STUDY.en.md)**
 
