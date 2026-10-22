@@ -1,7 +1,7 @@
 # Danfoss / XWEB
 
-**v1.0 — Publication initiale, 18 octobre 2026**  
-**v1.0 — Initial publication, 18 October 2026**
+**v1.1 — Actualisation du 22 octobre 2026 (publication initiale : 18 octobre 2026)**  
+**v1.1 — Update of 22 October 2026 (initial publication: 18 October 2026)**
 
 ## 🇫🇷 Français
 
@@ -15,7 +15,7 @@ Cette investigation indépendante d'Offensive Security Assessment examine le con
 - la délégation des accès et des responsabilités dans la chaîne de maintenance ;
 - l'OSINT/EASM, les chemins d'attaque, les hypothèses concurrentes et les conditions de récupération.
 
-Les quatre constats d'enquête conservent la profondeur technique et leurs limites : questionnaires volontaires et déclaratifs, photographie XWEB non authentifiée, données d'exposition sans lien établi avec les victimes. Le vecteur initial, la première écriture anormale acceptée et l'autorité multisite effectivement utilisée demeurent inconnus. La revue interne ne constitue pas une validation par un expert extérieur.
+Les quatre constats ont été reformulés pour plus de clarté. Une note datée distingue l'appréciation publique de l'ANSSI des preuves d'incident et précise les précautions de reprise XWEB. Les constats conservent leur profondeur technique et leurs limites : questionnaires volontaires et déclaratifs, photographie XWEB non authentifiée, données d'exposition sans lien établi avec les victimes. Le vecteur initial, la première écriture anormale acceptée et l'autorité multisite effectivement utilisée demeurent inconnus. La revue interne ne constitue pas une validation par un expert extérieur.
 
 ## 🇬🇧 English
 
@@ -29,7 +29,7 @@ This independent Offensive Security Assessment examines French food supermarkets
 - delegated access and responsibilities across the maintenance chain;
 - OSINT/EASM, attack paths, competing hypotheses and recovery conditions.
 
-The four investigation findings retain their technical depth and limitations: voluntary, declarative questionnaires; an unauthenticated XWEB photograph; and exposure data without an established link to victims. The initial vector, first accepted abnormal write and multisite authority actually used remain unknown. Internal review is not validation by an external expert.
+The four findings have been clarified. A dated note separates ANSSI's public assessment from incident evidence and qualifies reported XWEB recovery guidance. The findings retain their technical depth and limitations: voluntary, declarative questionnaires; an unauthenticated XWEB photograph; and exposure data without an established link to victims. The initial vector, first accepted abnormal write and multisite authority actually used remain unknown. Internal review is not validation by an external expert.
 
 ## Corrections et licence / Corrections and licence
 

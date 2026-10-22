@@ -2,7 +2,7 @@
 
 **Investigation indépendante sur les accès, les droits de modification et la reprise des installations frigorifiques**
 
-**v1.0 — Publication initiale, 18 octobre 2026**  
+**v1.1 — Actualisation du 22 octobre 2026 (publication initiale : 18 octobre 2026)**  
 **Auteur (pseudonyme) :** lxrider. **Textes originaux :** [CC BY 4.0](LICENSE.md).  
 [English version](STUDY.en.md) · [Accueil](README.md) · [Corrections](CORRECTIONS.md)
 
@@ -10,20 +10,28 @@ En octobre 2026, des perturbations frigorifiques sont signalées dans le commerc
 
 Le CERT-FR signale de nombreuses compromissions de contrôleurs à distance Danfoss AK-SM/AK-SC et Copeland/Dixell XWEB. Son alerte a été publiée le 12 octobre, étendue à d'autres équipements le 13, puis révisée le 16 pour mettre à jour les recommandations. Elle établit le périmètre des familles signalées et les mesures préconisées ; elle ne détermine pas le vecteur initial.[1](#ref-1)
 
-Cette étude examine les installations frigorifiques des grandes et moyennes surfaces (GMS) alimentaires en France, leur télésurveillance et leur maintenance. Une supervision relie des accès numériques à des fonctions physiques : réguler, dégivrer, détecter une dérive et permettre une intervention. Nous avons rapproché les observations de surface Internet, les témoignages et la documentation produit pour reconstruire les autorités capables d'agir sur ces fonctions. Aucun test actif n'a été effectué sur une installation tierce.
+Cette étude examine les installations frigorifiques des grandes et moyennes surfaces (GMS) alimentaires en France, leur télésurveillance et leur maintenance. Une supervision relie des accès numériques à des fonctions physiques : réguler, dégivrer, détecter une dérive et permettre une intervention. Nous avons rapproché les observations de surface Internet, les témoignages et la documentation produit pour reconstruire les autorités capables d'agir sur ces fonctions. Dans le vocabulaire métier, cette supervision peut relever de la gestion technique centralisée (GTC) du froid, sans constituer nécessairement une GTB couvrant tous les lots techniques du bâtiment. Aucun test actif n'a été effectué sur une installation tierce.
 
 ## Résultats et question ouverte
 
-| Constat | Éléments disponibles | Limite déterminante |
-|---|---|---|
-| L'exposition peut résulter de décisions et de contraintes réparties entre organisations. | Deux enquêtes auprès de professionnels du froid et un témoignage distinct ; pratiques **REPORTED**. | Contrats, pouvoirs effectifs et lien causal avec les victimes **UNKNOWN**. |
-| Des familles de superviseurs différentes peuvent produire des perturbations comparables par des mécanismes différents. | Capacités propres aux générations **DOCUMENTED** ; perturbations **REPORTED**. | Aucun vecteur commun établi entre Danfoss et XWEB. |
-| La cohérence des modifications apparentes rend plausible une préparation fonctionnelle. | Motif XWEB **OBSERVED** sur capture ; comparaison statique de sept bibliothèques constructeur **OBSERVED**. | Modèle installé, outil, préparation et connaissances de l'auteur **UNKNOWN**. |
-| Une commande affichée couvre une étape distincte de son acceptation et de l'effet physique. | Fonctions d'import, d'écriture, de lecture et contraintes produit **DOCUMENTED**. | Chaîne complète commande → état actif → mesure physique **UNKNOWN**. |
+Notre investigation fait ressortir quatre constats principaux :
 
-Le résultat architectural est conditionnel : **lorsqu'une même autorité peut déplacer une consigne et la limite qui l'encadre, cette limite reste sous son contrôle**. L'indépendance des protections embarquées, physiques et organisationnelles doit être vérifiée séparément.
+- **Les accès distants dépendent de plusieurs acteurs.** Les témoignages recueillis montrent que les responsabilités de configuration, d'administration et de sécurisation peuvent être réparties entre exploitants, DSI et prestataires. Ces pratiques sont **REPORTED** ; leur rôle dans les compromissions reste **UNKNOWN**.
+- **Des perturbations similaires ne prouvent pas un même chemin d'attaque.** Les technologies Danfoss et XWEB disposent de fonctions d'administration différentes (**DOCUMENTED**). Aucun vecteur commun n'a été établi.
+- **Les modifications apparentes sur XWEB présentent une cohérence fonctionnelle.** La photographie examinée montre des séries de changements visant notamment les consignes, leurs limites, le dégivrage et certains paramètres d'alarme (**OBSERVED**). La comparaison de sept bibliothèques constructeur renforce la compréhension technique de ces paramètres. Une configuration préparée est plausible, mais l'outil employé, les connaissances de l'opérateur et son intention restent **UNKNOWN**.
+- **Une commande enregistrée ne prouve pas sa bonne exécution.** Les fonctions de préparation, d'écriture et de lecture sont distinctes (**DOCUMENTED**). Nous ne disposons pas des éléments permettant de confirmer l'acceptation de chaque modification par le régulateur ou ses conséquences physiques.
 
-L'inconnue décisive reste la provenance de la **première écriture anormale acceptée**. Les hypothèses H1–H5 demeurent **INDETERMINATE** ; les scénarios COA-A/B/C restent ouverts, sans classement. Les étiquettes probatoires sont définies dans la section « Méthode, provenance et reproductibilité ».
+### Une limite configurable est-elle une véritable protection ?
+
+Sur certaines familles de régulateurs Dixell, la consigne de température (`SEt`) est encadrée par une limite supérieure configurable (`US`).
+
+Cette limite peut normalement empêcher certaines consignes hors plage. Mais **si une même identité possède les droits nécessaires pour modifier à la fois la consigne et sa limite, celle-ci ne constitue pas une protection indépendante contre les actions de cette identité**.
+
+Le journal XWEB présente des écritures apparentes concernant ces deux paramètres. Il ne démontre toutefois ni que les modifications ont été acceptées, ni qu'une même identité disposait effectivement de tous les droits nécessaires.
+
+Les autres protections doivent être examinées séparément : peuvent-elles encore agir si la supervision ou le régulateur est compromis ? Protègent-elles les équipements, la continuité du froid, les denrées ou seulement la détection des anomalies ?
+
+**La question décisive demeure l'origine de la première écriture anormale acceptée.** Les hypothèses H1–H5 restent **INDETERMINATE** et les scénarios COA-A/B/C demeurent ouverts, sans classement. Les étiquettes probatoires sont définies dans la section « Méthode, provenance et reproductibilité ».
 
 ## 1. Quatre constats issus de l'enquête
 
@@ -217,6 +225,8 @@ L'analyse des hypothèses est **structurée et inspirée des principes ACH** : c
 
 **H1–H5 : INDETERMINATE.** Certaines hypothèses peuvent se combiner. H3 distingue l'utilisation d'un accès et celle de renseignements de maintenance. Aucun artefact logiciel altéré ni usage d'une CVE n'est établi dans le corpus d'incident.
 
+**Actualisation institutionnelle du 21 octobre 2026.** Selon les comptes rendus de l'audition de Vincent Strubel, directeur général de l'ANSSI, devant une commission du Sénat, l'analyse communiquée par l'agence ne retient pas l'exploitation des vulnérabilités rendues publiques par des chercheurs durant les deux années précédentes. Elle met plutôt en avant des défauts de sécurisation élémentaires : interfaces d'administration directement exposées à Internet, administration insuffisamment protégée et mots de passe faibles.[18](#ref-18) Cette appréciation **REPORTED** par la presse est une information institutionnelle nouvelle sur le mécanisme général envisagé, **pas** une trace forensique accessible dans notre corpus. Elle renforce la pertinence des configurations et de l'authentification dans l'examen de H1/H2, sans établir une compromission distribuée, un mécanisme unique, une identité intersites ou l'exclusion exhaustive de toute autre voie. Les premières sessions et écritures restent **UNKNOWN** ; H1–H5 ne sont pas classées.
+
 Les scénarios de séquencement posent une autre question :
 
 | Scénario | Lecture candidate | Preuve manquante |
@@ -269,6 +279,8 @@ Un récit Dixell évoque une configuration de sonde inadaptée ; d'autres récit
 
 Une validation de reprise doit identifier la référence approuvée, contrôler le sens des transferts, les programmations et les forçages, puis vérifier les valeurs actives, les alarmes et les mesures physiques pertinentes. L'état du superviseur, celui du régulateur et celui d'une sauvegarde peuvent diverger ; une sauvegarde récente peut déjà contenir une configuration anormale. La remise en service doit être validée par le professionnel qualifié et l'exploitant selon les contraintes du procédé.
 
+Le lien constructeur relatif aux superviseurs XWEB figurant dans l'alerte CERT-FR renvoie à un document Copeland/Dixell daté du 14 octobre 2026, décrit comme remplacé sur le serveur le 18 octobre. Selon un compte rendu de veille corrigé le 19 octobre, les recommandations portent notamment sur la restauration d'une sauvegarde antérieure à l'accès suspect, les comptes et profils, les destinataires et essais d'alarmes, la restauration ou la relecture des paramètres des régulateurs, ainsi que la mesure directe des températures des denrées.[19](#ref-19) **Statut : REPORTED pour le contenu détaillé du bulletin**, dont la version courante n'a pas pu être lue directement lors de cette révision. Une sauvegarde du superviseur ne démontre donc pas, à elle seule, que les réglages de chaque régulateur, les alarmes et les mesures physiques sont revenus à un état fiable. Ces recommandations ne prouvent aucun mécanisme de réinjection hostile lors des incidents.
+
 Trois exercices sur table peuvent commencer cette vérification : consigne et borne modifiées sous la même autorité ; fermeture nocturne d'un accès avec maintien de l'alerte ; réapparition d'une anomalie après correction. Ils peuvent révéler une permission trop large ou une décision impossible à prendre. Aucun essai perturbant une installation en service n'est proposé ici.
 
 ## 4. Des questions d'investigation transférables
@@ -305,7 +317,7 @@ Le comportement visible, le mécanisme technique, l'effet mesuré, l'intention e
 
 ## 6. Une étude ouverte à la contradiction technique
 
-Cette v1.0 est une étude indépendante, proposée à la critique des professionnels du froid, de l'OT et de l'Offensive Security. Trois questions restent prioritaires :
+Cette v1.1 est une étude indépendante, proposée à la critique des professionnels du froid, de l'OT et de l'Offensive Security. Trois questions restent prioritaires :
 
 | Question | Contre-épreuve utile |
 |---|---|
@@ -334,7 +346,7 @@ Les contradictions documentées, corrections techniques et résultats d'essais a
 
 ## Références publiques
 
-Les références concernent les familles et éditions indiquées. Contrôle éditorial actualisé le **18 octobre 2026** ; les limites d’accès sont précisées aux entrées concernées. Les documents publics peuvent évoluer.
+Les références concernent les familles et éditions indiquées. Références initiales contrôlées le **18 octobre 2026** ; références [18] et [19] ajoutées lors de l'actualisation du **22 octobre 2026**. Les limites d’accès sont précisées aux entrées concernées. Les documents publics peuvent évoluer.
 
 <a id="ref-1"></a> **[1]** CERT-FR, [*Incident de sécurité ciblant les contrôleurs à distance des installations de réfrigération*](https://cert.cyber.gouv.fr/alerte/CERTFR-2026-ALE-012/), CERTFR-2026-ALE-012. Gestion détaillée et JSON contrôlés le 18 octobre 2026 : version initiale le 12 octobre ; ajout d'autres équipements ciblés le 13 ; mise à jour des recommandations le 16. Périmètre des familles et recommandations de protection et de reprise.
 
@@ -381,6 +393,10 @@ Les références concernent les familles et éditions indiquées. Contrôle édi
 
 
 <a id="ref-17"></a> **[17]** Copeland/Dixell, [catalogue XWEB historique](https://webapps.copeland.com/Dixell/Pages/XWEB) et [catalogue XWEB EVO](https://webapps.copeland.com/Dixell/Pages/XWEB_EVO), consultés le 18 octobre 2026. Fichiers publics XM679K comparés : [v0.9](https://webapps.copeland.com/Dixell/Content/Libraries/Xweb/XM679K_003200090000.xw5), [v1.3](https://webapps.copeland.com/Dixell/Content/Libraries/Xweb/XM679K_0032000D0001.xw5), [v3.4](https://webapps.copeland.com/Dixell/Content/Libraries/Xweb/XM679K_003200220012.xw5), [v3.9](https://webapps.copeland.com/Dixell/Content/Libraries/Xweb/XM679K_003200270018.xw5), [v4.2](https://webapps.copeland.com/Dixell/Content/Libraries/Xweb/XM679K_0032002A001D.xw5), [v4.3](https://webapps.copeland.com/Dixell/Content/Libraries/Xweb/XM679K_0032002B001E.xw5) et [v5.4](https://webapps.copeland.com/Dixell/Content/Libraries/Xweb/XM679K_003200360029.xw5). Comparaison statique de leurs dictionnaires de paramètres ; aucune exécution ni identification de firmware victime. Les empreintes et contrôles sont conservés dans le dossier de recherche privé.
+
+<a id="ref-18"></a> **[18]** Romain David, Public Sénat, [*« Des défauts de sécurisation élémentaire et des mots de passe faibles » ont permis la cyberattaque contre les frigos de supermarchés*](https://www.publicsenat.fr/actualites/politique/des-defauts-de-securisation-elementaire-et-des-mots-de-passe-faibles-ont-permis-la-cyberattaque-contre-les-frigos-de-supermarches), 21 octobre 2026 ; [Le Parisien/AFP](https://www.leparisien.fr/high-tech/cyberattaque-des-frigos-de-supermarches-des-defauts-de-securisation-elementaires-pointes-par-lanssi-21-10-2026-B6DQYYM5BFFKXFGDFB275MICBY.php), même date. Propos de Vincent Strubel rapportés par la presse ; pas de retranscription parlementaire intégrale contrôlée ni de pièces forensiques accessibles.
+
+<a id="ref-19"></a> **[19]** Copeland/Dixell France, [*Recommandations pour une utilisation sécurisée des superviseurs XWEB*](https://dixell.fr/wp-content/uploads/2026/10/Recommandations-pour-une-utilisation-securisee-des-superviseurs-XWEB-v1.0.pdf), lien figurant dans [l'alerte CERT-FR](https://cert.cyber.gouv.fr/alerte/CERTFR-2026-ALE-012/) ; contenu du bulletin daté du 14 octobre et remplacement du fichier le 18 octobre **rapportés** par [CTIPilot, correction du 19 octobre](https://ctipilot.ch/entries/2026-10-13/danfoss-ak-sm-ak-sc-french-supermarket-refrigeration-attack/). PDF courant non récupéré directement lors de cette révision : prescriptions détaillées **REPORTED**, non vérifiées indépendamment.
 
 ---
 

@@ -2,7 +2,7 @@
 
 **An independent investigation of access paths, modification rights and recovery in refrigeration installations**
 
-**v1.0 — Initial publication, 18 October 2026**  
+**v1.1 — Update of 22 October 2026 (initial publication: 18 October 2026)**  
 **Author (pseudonym):** lxrider. **Original text:** [CC BY 4.0](LICENSE.md).  
 [Version française](ETUDE.md) · [Home](README.md) · [Corrections](CORRECTIONS.md)
 
@@ -10,20 +10,28 @@ In October 2026, refrigeration disruptions were reported in food retail. For a s
 
 CERT-FR reported numerous compromises of Danfoss AK-SM/AK-SC and Copeland/Dixell XWEB remote controllers. Its alert was published on 12 October, expanded to other equipment on 13 October and revised on 16 October to update its recommendations. It establishes the scope of the product families reported and the recommended measures; it does not establish the initial attack vector.[1](#ref-1)
 
-This study examines refrigeration installations in French food supermarkets and hypermarkets (grandes et moyennes surfaces, or GMS), their remote monitoring and their maintenance. A supervisory system connects digital access to physical functions: control, defrosting, detection of abnormal conditions and maintenance intervention. We compared Internet exposure observations, testimony and product documentation to reconstruct the authority that could act on these functions. No active testing was performed on third-party installations.
+This study examines refrigeration installations in French food supermarkets and hypermarkets (grandes et moyennes surfaces, or GMS), their remote monitoring and their maintenance. A supervisory system connects digital access to physical functions: control, defrosting, detection of abnormal conditions and maintenance intervention. We compared Internet exposure observations, testimony and product documentation to reconstruct the authority that could act on these functions. In industry terminology, this refrigeration supervision may form part of technical centralised management (GTC), without necessarily constituting a building management system covering every building service. No active testing was performed on third-party installations.
 
 ## Findings and the unresolved question
 
-| Finding | Available evidence | Decisive limitation |
-|---|---|---|
-| Exposure can result from decisions and constraints distributed across organisations. | Two surveys of refrigeration professionals and separate testimony; practices **REPORTED**. | Contracts, actual decision-making powers and a causal link to victims **UNKNOWN**. |
-| Different supervisory product families can produce comparable disruptions through different mechanisms. | Generation-specific capabilities **DOCUMENTED**; disruptions **REPORTED**. | No common vector established between Danfoss and XWEB. |
-| The consistency of the apparent changes makes functional preparation plausible. | XWEB pattern **OBSERVED** in a screenshot; static comparison of seven manufacturer libraries **OBSERVED**. | Installed model, tool, preparation and the operator's knowledge **UNKNOWN**. |
-| A displayed command represents a different stage from acceptance and physical effect. | Import, write and read functions and product constraints **DOCUMENTED**. | Complete command → active state → physical measurement chain **UNKNOWN**. |
+Our investigation identifies four main findings:
 
-The architectural finding is conditional: **when the same authority can change both a setpoint and the limit constraining it, that limit remains under its control**. The independence of embedded, physical and organisational protections must be checked separately.
+- **Remote access depends on several parties.** The accounts received indicate that responsibility for configuring, administering and securing access may be shared among operators, IT departments and service providers. These practices are **REPORTED**; their role in the compromises remains **UNKNOWN**.
+- **Similar disruptions do not establish a common attack path.** Danfoss and XWEB technologies have different administration capabilities (**DOCUMENTED**). No common entry vector has been established.
+- **The apparent XWEB changes show functional consistency.** The photograph examined shows sequences of changes targeting setpoints, their limits, defrosting and certain alarm parameters (**OBSERVED**). A static comparison of seven manufacturer libraries improves our technical understanding of these parameters. A prepared configuration is plausible, but the tool used, the operator's knowledge and intent remain **UNKNOWN**.
+- **A logged command does not prove successful execution.** Preparation, writing and reading are separate functions (**DOCUMENTED**). We lack the evidence needed to confirm that each change was accepted by a controller or to establish its physical consequences.
 
-The decisive unknown remains the origin of the **first accepted abnormal write**. H1–H5 remain **INDETERMINATE**; COA-A/B/C remain open and unranked. Evidence labels are defined in “Method, provenance and reproducibility”.
+### Is a configurable limit a genuinely independent safeguard?
+
+In some Dixell controller families, the temperature setpoint (`SEt`) is constrained by a configurable upper limit (`US`).
+
+That limit can ordinarily prevent some out-of-range setpoints. However, **if the same identity has the rights to modify both the setpoint and its limit, the limit is not an independent safeguard against actions by that identity**.
+
+The XWEB log shows apparent write events concerning both parameters. It does not establish that the changes were accepted, or that a single identity actually held all the necessary permissions.
+
+Other protections must be assessed separately: can they still operate if the supervisory system or controller is compromised? Do they protect the equipment, continuity of refrigeration, the goods being stored or only anomaly detection?
+
+**The decisive question remains the origin of the first accepted abnormal write.** H1–H5 remain **INDETERMINATE**, and COA-A/B/C remain open and unranked. Evidence labels are defined under “Method, provenance and reproducibility”.
 
 ## 1. Four findings from the investigation
 
@@ -217,6 +225,8 @@ The hypothesis analysis is **structured and informed by ACH principles**: seek i
 
 **H1–H5: INDETERMINATE.** Some hypotheses may combine. H3 separates use of maintenance access from use of maintenance information. Neither an altered software artefact nor use of a CVE is established in the incident corpus.
 
+**Institutional update, 21 October 2026.** According to reports of ANSSI director-general Vincent Strubel's hearing before a French Senate committee, the agency's stated assessment does not support exploitation of the vulnerabilities disclosed by researchers over the previous two years. Instead, he pointed to basic security shortcomings: management interfaces directly exposed to the Internet, insufficiently protected administration and weak passwords.[18](#ref-18) This institutional assessment is **REPORTED** by news outlets; it is not forensic evidence available in our corpus. It adds weight to examining exposure, configuration and authentication under H1/H2 without demonstrating distributed compromises, one shared mechanism, a cross-site identity or the exhaustive exclusion of other routes. The first sessions and accepted writes remain **UNKNOWN**, and H1–H5 remain unranked.
+
 Sequencing scenarios address a different question:
 
 | Scenario | Candidate interpretation | Missing evidence |
@@ -269,6 +279,8 @@ One Dixell account mentions an unsuitable probe configuration; other Danfoss acc
 
 Recovery validation must identify the approved baseline, check transfer direction, schedules and overrides, then verify active values, alarms and relevant physical measurements. Supervisory state, controller state and backup contents may differ; a recent backup may already contain an abnormal configuration. Return to service must be validated by the qualified professional and operator in accordance with process constraints.
 
+The XWEB guidance linked by CERT-FR points to a Copeland/Dixell document dated 14 October 2026, reportedly replaced on the vendor server on 18 October. According to a monitoring summary corrected on 19 October, the recommendations include restoring a backup predating the suspected access, checking users and profiles, verifying alarm recipients and testing alarms, restoring or reading back controller parameters, and measuring product temperatures directly.[19](#ref-19) **Status: REPORTED for the bulletin's detailed contents**, as the current PDF could not be read directly during this revision. Restoring a supervisor backup alone therefore does not establish that each controller's settings, alarms and physical measurements have returned to a trustworthy state. This guidance does not establish that malicious parameter reinjection occurred during the incidents.
+
 Three tabletop exercises can begin these checks: setpoint and bound changed under the same authority; closing access at night while preserving alerting; and recurrence after correction. They may reveal excessive permissions or a decision that cannot be made. No test that disrupts an operating installation is proposed here.
 
 ## 4. Transferable investigation questions
@@ -305,7 +317,7 @@ Visible behaviour, technical mechanism, measured effect, intent and attribution 
 
 ## 6. A study open to technical challenge
 
-This v1.0 is an independent study offered for criticism by refrigeration, OT and Offensive Security professionals. Three questions remain priorities:
+This v1.1 is an independent study offered for criticism by refrigeration, OT and Offensive Security professionals. Three questions remain priorities:
 
 | Question | Useful test of the interpretation |
 |---|---|
@@ -335,7 +347,7 @@ Documented contradictions, technical corrections and results from authorised tes
 
 ## Public references
 
-References concern the specified families and editions. Editorial checks updated on **18 October 2026**; access limitations are stated in the relevant entries. Public documents may change.
+References concern the specified families and editions. Initial references checked on **18 October 2026**; references [18] and [19] were added in the **22 October 2026** update. Access limitations are stated in the relevant entries. Public documents may change.
 
 <a id="ref-1"></a> **[1]** CERT-FR, [*Incident de sécurité ciblant les contrôleurs à distance des installations de réfrigération*](https://cert.cyber.gouv.fr/alerte/CERTFR-2026-ALE-012/), CERTFR-2026-ALE-012. Detailed document history and JSON checked on 18 October 2026: initial version on 12 October; other targeted equipment added on 13 October; recommendations updated on 16 October. Scope of families and protection and recovery recommendations.
 
@@ -380,6 +392,10 @@ References concern the specified families and editions. Editorial checks updated
 <a id="ref-16"></a> **[16]** Richards J. Heuer Jr., [*Psychology of Intelligence Analysis*](https://www.cia.gov/resources/csi/books-monographs/psychology-of-intelligence-analysis-2/), CIA Center for the Study of Intelligence, 1999, chapter 8, *Analysis of Competing Hypotheses*, consulted in the public book PDF.
 
 <a id="ref-17"></a> **[17]** Copeland/Dixell, [historical XWEB catalogue](https://webapps.copeland.com/Dixell/Pages/XWEB) and [XWEB EVO catalogue](https://webapps.copeland.com/Dixell/Pages/XWEB_EVO), consulted on 18 October 2026. Public XM679K files compared: [v0.9](https://webapps.copeland.com/Dixell/Content/Libraries/Xweb/XM679K_003200090000.xw5), [v1.3](https://webapps.copeland.com/Dixell/Content/Libraries/Xweb/XM679K_0032000D0001.xw5), [v3.4](https://webapps.copeland.com/Dixell/Content/Libraries/Xweb/XM679K_003200220012.xw5), [v3.9](https://webapps.copeland.com/Dixell/Content/Libraries/Xweb/XM679K_003200270018.xw5), [v4.2](https://webapps.copeland.com/Dixell/Content/Libraries/Xweb/XM679K_0032002A001D.xw5), [v4.3](https://webapps.copeland.com/Dixell/Content/Libraries/Xweb/XM679K_0032002B001E.xw5), [v5.4](https://webapps.copeland.com/Dixell/Content/Libraries/Xweb/XM679K_003200360029.xw5). Static comparison of parameter dictionaries; no execution or identification of victim firmware. Hashes and checks are retained in the private research record.
+
+<a id="ref-18"></a> **[18]** Romain David, Public Sénat, [*“Des défauts de sécurisation élémentaire et des mots de passe faibles” ont permis la cyberattaque contre les frigos de supermarchés*](https://www.publicsenat.fr/actualites/politique/des-defauts-de-securisation-elementaire-et-des-mots-de-passe-faibles-ont-permis-la-cyberattaque-contre-les-frigos-de-supermarches), 21 October 2026; [Le Parisien/AFP](https://www.leparisien.fr/high-tech/cyberattaque-des-frigos-de-supermarches-des-defauts-de-securisation-elementaires-pointes-par-lanssi-21-10-2026-B6DQYYM5BFFKXFGDFB275MICBY.php), same date. News reporting of Vincent Strubel's remarks; no complete parliamentary transcript or underlying forensic evidence independently checked.
+
+<a id="ref-19"></a> **[19]** Copeland/Dixell France, [*Recommandations pour une utilisation sécurisée des superviseurs XWEB*](https://dixell.fr/wp-content/uploads/2026/10/Recommandations-pour-une-utilisation-securisee-des-superviseurs-XWEB-v1.0.pdf), linked by the [CERT-FR alert](https://cert.cyber.gouv.fr/alerte/CERTFR-2026-ALE-012/). The bulletin dated 14 October and the file replacement on 18 October are **reported** by [CTIPilot's correction of 19 October](https://ctipilot.ch/entries/2026-10-13/danfoss-ak-sm-ak-sc-french-supermarket-refrigeration-attack/). The current PDF could not be retrieved directly for this revision: detailed recommendations **REPORTED**, not independently verified.
 
 ---
 
