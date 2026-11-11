@@ -2,7 +2,7 @@
 
 **An independent investigation of access paths, modification rights and recovery in refrigeration installations**
 
-**v1.1 — Update of 22 October 2026 (initial publication: 18 October 2026)**  
+**v1.2-RC2 — GitHub review candidate dated 11 November 2026 (v1.1 baseline published 22 October; initial publication: 18 October 2026)**  
 **Author (pseudonym):** lxrider. **Original text:** [CC BY 4.0](LICENSE.md).  
 [Version française](ETUDE.md) · [Home](README.md) · [Corrections](CORRECTIONS.md)
 
@@ -32,6 +32,8 @@ The XWEB log shows apparent write events concerning both parameters. It does not
 Other protections must be assessed separately: can they still operate if the supervisory system or controller is compromised? Do they protect the equipment, continuity of refrigeration, the goods being stored or only anomaly detection?
 
 **The decisive question remains the origin of the first accepted abnormal write.** H1–H5 remain **INDETERMINATE**, and COA-A/B/C remain open and unranked. Evidence labels are defined under “Method, provenance and reproducibility”.
+
+> **Dated update, 10 November 2026 (v1.2-RC1, unpublished).** C4 officially attributes **the 11–12 October operation** to Shahid Kaveh, but does not disclose the first command’s provenance or a common multisite access path. Sekoia and Ransom-ISAC also describe **November or honeypot observations** that cannot simply be transferred to October victims. The [full CTI update and competing explanations](#cti-update-of-10-november-2026--v12-rc1-addendum) appear **after the historical technical analysis**, with evidential limitations retained.[20](#ref-20)[22](#ref-22)[23](#ref-23)
 
 ## 1. Four findings from the investigation
 
@@ -327,6 +329,59 @@ This v1.1 is an independent study offered for criticism by refrigeration, OT and
 
 Documented contradictions, technical corrections and results from authorised tests are welcome. A useful contribution distinguishes product capability, field experience, feasibility testing and incident evidence; it states what would change the interpretation. Sensitive data, third-party configurations and raw logs must remain outside issues and attachments. Contributions must respect the constraints of teams engaged in remediation. The process is described in [CORRECTIONS.md](CORRECTIONS.md).
 
+## CTI update of 10–11 November 2026 — v1.2-RC2 addendum
+
+> **Knowledge as at 10 November 2026, without retrospectively changing the October record.** The four findings in the 22 October edition remain an independent analysis of refrigeration supervisory mechanisms, not an attribution. The official attribution below applies specifically to the **11–12 October operation**; it does not automatically cover every 13 October XWEB event or the Europe-wide November wave. `DOCUMENTED` describes what an institutional or manufacturer source establishes; `REPORTED` describes third-party research or testimony; `OBSERVED` describes examined material without proving its underlying incident provenance; `HYPOTHESIS` indicates an interpretation; `UNKNOWN` indicates evidence not established.
+
+### Official attribution: new knowledge, not a reconstructed intrusion path
+
+On **9 November 2026**, France's Cyber Crisis Coordination Centre (C4: ANSSI, COMCYBER, DGA, DGSE and DGSI) published **CERTFR-2026-CTI-009**. French authorities attributed the **11–12 October 2026** refrigeration-controller attacks to **Shahid Kaveh**, an offensive cyber unit affiliated with Iran's IRGC Cyber and Electronic Command. C4 reports approximately **700 targeted large-retail sites**, additional agri-food victims, changes to defrost parameters, spoiled inventory and **at least 15 fire outbreaks**. It also links contemporaneous targeting of small hydroelectric facilities using Schneider Electric equipment to the same operation, with moderate effects.[20](#ref-20)[21](#ref-21)
+
+C4's disclosed attribution indicators include infrastructure also used to reconnoitre Schneider Electric devices, use of **FOFA**, amplification by **CyberbanNews** from 13 October and traces of Farsi in attacking infrastructure. These constitute an **institutional body of indicators**, but the underlying logs, infrastructure identifiers and full chain of evidence have not been released. FOFA, a language or a claim is not sufficient for attribution in isolation. **Shahid Shoostari**, mentioned in the same report for other operations against France, is a separate unit and must not be conflated with Shahid Kaveh. **The public C4 report does not establish the exploited CVE, initial login, account, service or any common multisite writing platform.**[20](#ref-20)
+
+**Different assessment dates are not an established contradiction.** Vincent Strubel’s comments **reported on 21 October** concerned the initial attacks and elementary security failures or weak credentials, without publicly reconstructing each access path. The attempted account manipulation examined by Sekoia was **observed on 1 November against AK-SM 800A honeypots**, not against a victim of the 11–12 October attack. It therefore does not retroactively invalidate the October ANSSI assessment as reported.[18](#ref-18)[22](#ref-22)
+
+### New research: keep incident windows, systems and provenance separate
+
+| Source / period | What can be used | What it **does not** establish |
+|---|---|---|
+| **Sekoia, 10 Nov**: partner reporting and four honeypots emulating **AK-SM 800A**, deployed on **12 Oct** | A partner reported reconnaissance more than a week before the initial wave. The decoys, deployed **after that wave began**, received information-read requests and password attempts; on **1 Nov**, a **blocked account-modification attempt** was observed. The researchers subsequently inferred an unauthenticated account-renaming primitive and a possible subsequent password-reset step, **which was not captured**. **REPORTED**; raw telemetry, code analysis and a proposed exploit chain are separate evidence levels.[22](#ref-22) | A successful end-to-end chain, exploitation of `CVE-2025-41450` in October, any victim compromise by this route, or applicability to historical **AK-SM 800 / AK-SC 355** generations. The **LLM** was used by researchers, not observed in attacker activity. |
+| **Ransom-ISAC, 6 Nov**: separate **2 Nov XWEB PRO** event log | Two Administrator sessions, reads across **31 supervised devices**, **743 parameter-write log events** across those devices, and sent defrost, keypad-lock and alarm-mute commands. **One “Alarm Mute” attempt explicitly failed** (“no valid function”); the log alone does not establish success for the other commands. Default Administrator credentials are **reported on the basis of other evidence**, not the presented log itself. **REPORTED**.[23](#ref-23) | 743 accepted or persistent writes, 743 distinct human actions, measured thermal effects, Shahid Kaveh involvement or identity with our 13 October XWEB photograph. **31 devices are not 31 stores**. |
+| **European Commission, 4 Nov** | Cross-border **1–2 Nov** wave and coordination by authorities. **DOCUMENTED** as a public institutional statement.[24](#ref-24) | Shared perpetrators or technical continuity with the C4-attributed 11–12 October operation. |
+| **Censys, 5 Nov** | Observed union of visible StoreView/XWEB hosts **6,695 → 3,124** between 9 Oct and 5 Nov; StoreView **3,004 → 708** and XWEB **3,708 → 2,420**, under that provider's own definitions. **REPORTED**.[25](#ref-25) | A count of physical controllers or victims, the reasons for disappearance (filtering, shutdown, relocation, patching) or a trend comparable with Netlas/Driftnet. |
+
+**Two further evidential boundaries.** A possible common operator across October and November is **Sekoia’s own assessment**, based on similarities in timing, targeting, infrastructure and tradecraft; the detailed correlations necessary to reproduce the conclusion are not fully public. **Our independent assessment remains `UNKNOWN`** for such continuity. Moreover, Sekoia's decoys emulate **AK-SM 800A**: without authenticated product models and firmware from October victims, their telemetry cannot be generalised to historical **AK-SM 800 / AK-SC 355** generations. An attempted action against a honeypot proves neither victim compromise nor production-product applicability.[22](#ref-22)[30](#ref-30)
+
+**ONYPHE's 22 October research** covers **XWEB EVO, XWEB PRO and Site Supervisor**, beyond Danfoss. It separates publicly readable operational metadata from command authority and compromise. Exposed services are not a list of victims; **Site Supervisor is not retroactively placed within the CERT-FR incident advisory**.[26](#ref-26) **ACDS (5 November)** highlights how AK-SM 800A fingerprinting may fail to represent historical **AK-SM 800 / AK-SC 355** affected populations. Firmware classes inferred from Web-resource build dates are not attestations of actual deployed firmware; that third party's active checks were not reproduced by this investigation.[30](#ref-30)
+
+A **Danfoss October 2025 bulletin** distinguishes **two 2022 precedents**: **16 Russian supermarkets targeted** in cyberattacks and **40 Israeli stores hacked**, the latter using AK-SM 800 and reportedly lacking appropriate firewall or VPN protection. It is relevant to historical access-exposure risks, **not evidence of continuity in authorship, tooling or operation** with October 2026.[27](#ref-27)
+
+### Independent precedents and competing actor explanations
+
+In **December 2025**, the **US Department of Justice** described, in the context of criminal charges, a **November 2024** attack on a Los Angeles meat-processing facility attributed to **CARR / Z-Pentest**, involving spoiled products and an ammonia leak. The DOJ alleges that CARR was directed and supported by Russian military intelligence; these remain **institutional allegations in criminal proceedings**, not a final conviction.[31](#ref-31) Historical capacity for physical industrial disruption means pro-Russian claims concerning November 2026 cannot be dismissed purely as implausible tradecraft. **It does not establish the NoName057(16)/Z-Pentest claim or refute C4's separate attribution for 11–12 October.**
+
+**Reuters reported on 29 October 2026** a US investigation of freezer malfunctions affecting **at least six military-base commissaries** in late August. Malicious interference and attribution had not been officially established. This is a **separate candidate incident set**, not evidence of a common transatlantic campaign or controller model.[32](#ref-32)
+
+### Additional CTI counter-checks (11 November 2026) — scope and attribution
+
+**Historical AI-model use: `DOCUMENTED` as a report, `UNKNOWN` for the incident.** OpenAI's **October 2024** report (pp. 14–15) states that it banned accounts which, based on a qualified third-party assessment, appeared linked to **CyberAv3ngers**. Observed requests concerned programmable controllers, default credentials, vulnerabilities and Bash/Python scripting assistance. This establishes a **qualified historical precedent for model use**, not its use in the French refrigeration sabotage of 2026. The LLM used by **Sekoia** in November was used **by the researchers**, not demonstrably by the attackers.[33](#ref-33)[22](#ref-22)
+
+**Group mapping ≠ campaign attribution: `DOCUMENTED` as MITRE page content.** ATT&CK ICS group **G1027** assigns historical techniques to CyberAv3ngers, while campaign **C0066** explicitly says that the July 2026 US water-utility intrusions have **not been formally attributed**. These records cannot be flattened into confirmed Shahid Kaveh conduct during the French incidents. Preserve the qualification of **each campaign**, **technique** and **source**; do not project group-level technique associations into October without incident evidence.[34](#ref-34)[35](#ref-35)
+
+**Earlier pro-Russian claims: `REPORTED`, not verified intrusions.** A **22 October** Forescout Vedere Labs study, described in contemporary specialist reporting, counted **more than 20 claimed refrigeration attacks since January 2026**, associated notably with **Z-Pentest Alliance** and **NoName057(16)**; Z-Pentest allegedly claimed ten on 26 April. The primary page could not be directly retrieved during this review, so the figures retain a **secondary-source provenance limitation**. Claims are not validated incidents. This finding prevents treating similar refrigeration effects as a Shahid Kaveh-exclusive actor signature for **November**, without disputing France's attribution of the **11–12 October** operation.[36](#ref-36)
+
+**Discriminating prediction:** continuity across episodes requires correlated artefacts (sessions and commands, infrastructure with established operator control, distinctive parameter sets, reliable timeline), not merely a shared sector, claim or exposed-device count. These additions create **no new attack path**, **do not rank H1–H5**, and do not convert COA-A/B/C into actor attributions.
+
+### Implications for attack paths and cyberphysical protection
+
+**H1–H5 remain `INDETERMINATE`; COA-A/B/C remain open.** FOFA usage, historical industrial adversary activity and honeypot observations make reconnaissance and distributed access relevant, but do not prove the **first session on any victim**. Weak credentials in one November XWEB PRO case do not establish a common October cause. Multiple stores or state-level coordination establish neither a shared account nor a tenant with cross-store write authority. No evidence of a tampered software update has emerged for H5. The **13 October XWEB photograph** remains **observed received content with unknown forensic provenance**: **39 apparent writes on three controllers**, subsequent ZIP-import errors, and **UNKNOWN** controller-side acceptance.
+
+**Fire outbreaks reported by C4** make it essential to distinguish the digital command, active setpoint, actual defrost mode, applied energy, electrical/thermal safeguards and physical event. **A displayed 50, 110 or 150 °C setpoint is not a measured temperature or an established explanation of a fire.** A configurable bound (`US`) or alarm controlled by the **same compromised authority** is not an independent safeguard. Assess **authority**, **physical/functional** and **protected-objective** independence in authorised facilities, with no disruptive experiments. The 5 November US inter-agency guidance recommends securing remote access and logging, and maintaining **reasonable setpoint limits on equipment downstream from controllers**. Its content has been checked against consistent reproductions, **but the primary CISA page could not be retrieved directly** during this review. Our **authority, physical/functional and protected-objective independence** criteria are this study’s **own analysis**, not independence demonstrated by the US fact sheet. The guidance does not explain the French fire outbreaks.[28](#ref-28)
+
+**Three evidence thresholds that would change the case:** (1) the first accepted write tied to session, principal and access channel; (2) on two independently verified, consenting sites, a common event with **effective cross-site write permissions**, or demonstrably independent operations; (3) controller readback, probe states and physical safeguards linked to observed effects. In their absence, **do not manufacture a forensic kill chain** or rank H1–H5. Manufacturer advisories and remediation releases must be checked **per exact product and generation**; current XWEB PRO guidance cannot be generalized to EVO/Classic. **No single fixed firmware version** (including “1.15.1” mentioned in private notes) is prescribed here without directly verifying the corresponding vendor bulletin.[29](#ref-29)
+
+> **Publication scope:** no victim-identifying information, credentials or private logs are included. The work remains documentary and passive. **This v1.2-RC2 is a review candidate, not a new independent forensic attribution.**
+
 ## Method, provenance and reproducibility
 
 **Classification.** **OBSERVED**: content directly received or examined, without authenticating the underlying event. **REPORTED**: a fact stated by a third party. **DOCUMENTED**: a fact or capability attested by a competent source, separating incident information from product documentation. **HYPOTHESIS**: an interpretation or scenario to test. **UNKNOWN**: undetermined information. **INDETERMINATE** remains the assessment of H1–H5.
@@ -398,6 +453,45 @@ References concern the specified families and editions. Initial references check
 <a id="ref-19"></a> **[19]** Copeland/Dixell France, [*Recommandations pour une utilisation sécurisée des superviseurs XWEB*](https://dixell.fr/wp-content/uploads/2026/10/Recommandations-pour-une-utilisation-securisee-des-superviseurs-XWEB-v1.0.pdf), linked by the [CERT-FR alert](https://cert.cyber.gouv.fr/alerte/CERTFR-2026-ALE-012/). The bulletin dated 14 October and the file replacement on 18 October are **reported** by [CTIPilot's correction of 19 October](https://ctipilot.ch/entries/2026-10-13/danfoss-ak-sm-ak-sc-french-supermarket-refrigeration-attack/). The current PDF could not be retrieved directly for this revision: detailed recommendations **REPORTED**, not independently verified.
 
 ---
+
+
+**New sources for the 10 November 2026 addendum.**
+
+<a id="ref-20"></a> **[20]** [C4 / CERT-FR, *Activités cyber offensives ciblant la France menées par des acteurs iraniens liés au CGRI*, CERTFR-2026-CTI-009, 9 November 2026. Official attribution **specific to 11–12 October**; initial attack path not publicly disclosed.](https://www.cert.cyber.gouv.fr/cti/CERTFR-2026-CTI-009/)
+
+<a id="ref-21"></a> **[21]** [French Ministry for Europe and Foreign Affairs, *Déclaration d'attribution à l'Iran de cyberattaques visant la France*, 9 November 2026. Same institutional attribution as [20], **not independent forensic corroboration**.](https://www.diplomatie.gouv.fr/fr/presse-et-ressources/decouvrir-et-informer/actualites/declaration-d-attribution-a-l-iran-de-cyber-attaques-visant-la-france)
+
+<a id="ref-22"></a> **[22]** [Sekoia TDR, *The Cold Chain on Fire: Unpatched Danfoss Controllers Exploited*, 10 November 2026. Partner-reported reconnaissance; post-onset 800A honeypots; 1 November blocked account-modification attempt; a hypothesised second step not captured. Authors’ October–November actor-continuity assessment is not independently established.](https://www.sekoia.com/blog/the-cold-chain-on-fire-unpatched-danfoss-controllers-exploited)
+
+<a id="ref-23"></a> **[23]** [Massimo Giaimo et al., Ransom-ISAC, *The Copeland Incident*, 6 November 2026. Separate 2 November XWEB PRO log: 31 supervised devices, 743 write events, one explicitly failed “Alarm Mute”; default-credential finding derives from other evidence, not the shown log.](https://ransom-isac.org/blog/the-copeland-incident/)
+
+<a id="ref-24"></a> **[24]** [European Commission, *Joint statement on cyber incidents in refrigeration systems across the EU*, 4 November 2026. Second wave and coordination, no common perpetrator publicly established.](https://digital-strategy.ec.europa.eu/en/news/joint-statement-cyber-incidents-refrigeration-systems-across-eu)
+
+<a id="ref-25"></a> **[25]** [Censys, *European Refrigeration Controller Exposure: A Second Attack Wave*, 5 November 2026. Provider-specific **visible-host series**, not victims or a causal remediation rate.](https://censys.com/blog/european-refrigeration-controller-exposure-sitrep/)
+
+<a id="ref-26"></a> **[26]** [ONYPHE, *Frigo d'importance vitale : au-delà de Danfoss, l'exposition des systèmes de supervision Copeland/Dixell*, 22 October 2026. Product families and passive exposure, not incident attribution.](https://blog.onyphe.io/frigo-dimportance-vitale-au-del-de-danfoss-lexposition-des-systmes-de-supervision-copeland-dixell/)
+
+<a id="ref-27"></a> **[27]** [Danfoss, *Tech Insider — October 2025*, cybersecurity section and 2022 precedents. Manufacturer account, with no established link to Shahid Kaveh.](https://www.danfoss.com/en/service-and-support/articles/dcs/tech-insider-october-2025/)
+
+<a id="ref-28"></a> **[28]** [CISA and US federal partners, *US Government Partners Urge Hardening Industrial Refrigeration and Cold-Chain Monitoring Systems*, 5 November 2026. Official page identified but directly inaccessible (403); content cross-checked against consistent third-party reproductions, without claiming complete primary-source verification. Three-part safeguard independence is our analysis.](https://www.cisa.gov/resources-tools/resources/us-government-partners-urge-hardening-industrial-refrigeration-and-cold-chain-monitoring-systems)
+
+<a id="ref-29"></a> **[29]** [Copeland, *Product Security Resources*, product-specific XWEB PRO security advisories and maintenance releases. Do not transfer a recommended version to EVO/Classic.](https://www.copeland.com/en-it/product-security-resources)
+
+<a id="ref-30"></a> **[30]** [ACDS Security Research Group, *Three Weeks' Warning: Europe's Exposed Refrigeration Controllers after the French Attacks*, 5 November 2026. Third-party EASM research, inferred firmware classes and fingerprint/generation limitations.](https://acdsglobal.com/fr/acds-research/three-weeks-warning-exposed-refrigeration-controllers)
+
+<a id="ref-31"></a> **[31]** United States Department of Justice, [*Justice Department Announces Actions to Combat Two Russian State-Sponsored Cyber Criminal Hacking Groups*](https://www.justice.gov/usao-cdca/pr/justice-department-announces-actions-combat-two-russian-state-sponsored-cyber-criminal), 9 December 2025. Charges and institutional description of CARR / Z-Pentest and a November 2024 refrigeration incident; **presumption of innocence**.
+
+<a id="ref-32"></a> **[32]** Reuters, [*Pentagon treating military base freezer malfunctions as suspected cyberattack, officials say*](https://www.reuters.com/technology/pentagon-treating-military-base-freezer-malfunctions-suspected-cyberattack-2026-10-29/), 29 October 2026. Investigation of August events, with no public attribution.
+
+---
+
+<a id="ref-33"></a> **[33]** [OpenAI, *Influence and cyber operations: an update*, October 2024, pp. 14–15. Qualified CyberAv3ngers-linked accounts; not an October 2026 incident finding.](https://cdn.openai.com/threat-intelligence-reports/influence-and-cyber-operations-an-update_October-2024.pdf)
+
+<a id="ref-34"></a> **[34]** [MITRE ATT&CK for ICS, *CyberAv3ngers*, G1027.](https://attack.mitre.org/groups/G1027/)
+
+<a id="ref-35"></a> **[35]** [MITRE ATT&CK, *2026 U.S. Water Utilities Attacks*, C0066; attribution unconfirmed.](https://attack.mitre.org/campaigns/C0066/)
+
+<a id="ref-36"></a> **[36]** [Forescout Vedere Labs, *Cold Chain, Open Control*, 22 October 2026; claim figures available to this review through contemporary secondary reporting.](https://www.forescout.com/blog/cold-chain-open-control-exposed-refrigeration-systems-reveal-global-risk/)
 
 ## Annex A — From investigation findings to industrial cybersecurity controls
 
